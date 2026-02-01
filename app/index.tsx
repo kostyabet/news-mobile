@@ -12,23 +12,19 @@ import {
   PageHeader,
   ThreadBlockSkeleton,
 } from "@/utils/components";
-import { useEffect, useRef, useState } from "react";
-import { Thread } from "@/entities/thread/model";
-import { fetchFilterThreads } from "@/entities/thread/data";
+import { useRef, useState } from "react";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useTranslation } from "react-i18next";
 import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
-import { Rhizome } from 'react-native-rhizome';
+import { useThreads } from "@/entities/thread/useThreads";
 
 const SEARCH_BAR_HEIGHT = 80;
 
 export default function Newspaper() {
-  const [data, setData] = useState<Thread[] | undefined>(undefined);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { threads, isLoading, handleSetSearch } = useThreads();
   const [searchQuery, setSearchQuery] = useState("");
-  const [debounceSearch, setDebounceSearch] = useState<string>("");
 
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -36,22 +32,12 @@ export default function Newspaper() {
   const searchAnim = useRef(new Animated.Value(0)).current;
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  const handleSetSearch = (search?: string) => {
-    setDebounceSearch(search || "");
-  };
-
   const handleSearch = (search?: string) => {
     setSearchQuery(search || "");
     debounceHandle(search);
   };
 
   const debounceHandle = useDebounce(handleSetSearch, 300);
-
-  useEffect(() => {
-    setLoading(true);
-    setData(fetchFilterThreads(debounceSearch));
-    setLoading(false);
-  }, [debounceSearch]);
 
   const showSearch = () => {
     setIsSearchVisible(true);
@@ -114,10 +100,10 @@ export default function Newspaper() {
         <PageHeader title={t("home.title")} />
 
         <View style={styles.cards}>
-          {!loading ? (
+          {!isLoading ? (
             <>
-              {data && data.length > 0 ? (
-                data.map((item, index) => (
+              {threads && threads.length > 0 ? (
+                threads.map((item, index) => (
                   <ThreadCard
                     key={index}
                     title={item.title}

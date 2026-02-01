@@ -7,6 +7,7 @@ import { ThemedStatusBar } from "@/utils/components/ThemedStatusBar";
 import "@/utils/i18n";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import {ThreadProvider} from "@/entities/thread/ThreadProvider";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,7 +43,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AppContent />
+      <ThreadProvider>
+        <AppContent />
+      </ThreadProvider>
     </ThemeProvider>
   );
 }
