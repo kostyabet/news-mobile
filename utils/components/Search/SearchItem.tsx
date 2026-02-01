@@ -20,8 +20,8 @@ export const SearchItem = ({ thread }: SearchItemProps) => {
       ]}
     >
       <View>
-        <Text style={styles.header}>{thread.title}</Text>
-        <Text style={styles.desctiption}>{thread.description}</Text>
+        <Text style={[ styles.header, { color: colors.textColor }]}>{thread.title}</Text>
+        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{thread.description}</Text>
       </View>
       <Text>{">"}</Text>
     </TouchableOpacity>

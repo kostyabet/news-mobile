@@ -54,5 +54,16 @@
     "notFound": "Ничего не найдено :(",
     "placeholder": "Поиск...",
     "restrict": "Введите как минимум 3 символа"
+  },
+  "thread": {
+    "create": {
+      "title": "Создание новой темы",
+      "titleLabel": "Заголовок",
+      "descriptionLabel": "Описание",
+      "titlePlaceholder": "Глобальное потепление...",
+      "descriptionPlaceholder": "Данная тема описывает...",
+      "apply": "Создать",
+      "cancel": "Отмена"
+    }
   }
 }

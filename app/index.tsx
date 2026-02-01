@@ -11,7 +11,7 @@ import {
   CustomLayout,
   ThreadCard,
   PageHeader,
-  ThreadBlockSkeleton,
+  ThreadBlockSkeleton, CustomButton,
 } from "@/utils/components";
 import { useRef, useState } from "react";
 import { useTheme } from "@/utils/theme/useTheme";
@@ -20,6 +20,8 @@ import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
 import { useThreads } from "@/entities/thread/useThreads";
+import {CreateThreadModal} from "@/utils/components/Modal/CreateThreadModal";
+import {Thread} from "@/entities/thread/model";
 
 const SEARCH_BAR_HEIGHT = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -28,6 +30,7 @@ const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
 export default function Newspaper() {
   const { threads, isLoading, handleSetSearch } = useThreads();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isOpenCreate, setIsOpenCreate] = useState(false);
 
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -83,6 +86,7 @@ export default function Newspaper() {
   };
 
   return (
+    <>
       <ScrollView
           style={[styles.container, { backgroundColor: colors.bcColor }]}
           onScroll={handleScroll}
@@ -100,7 +104,12 @@ export default function Newspaper() {
             />
           </Animated.View>
 
-          <PageHeader title={t("home.title")} />
+          <View style={styles.containerHeader}>
+            <PageHeader title={t("home.title")} />
+            <CustomButton onClick={() => setIsOpenCreate(true)}>
+              +
+            </CustomButton>
+          </View>
 
           <View style={styles.cardsContainer}>
             {!isLoading ? (
@@ -141,6 +150,13 @@ export default function Newspaper() {
           </View>
         </CustomLayout>
       </ScrollView>
+
+      <CreateThreadModal
+        visible={isOpenCreate}
+        onClose={() => setIsOpenCreate(false)}
+        onCreate={(thread: Thread) => {}}
+      />
+    </>
   );
 }
 
@@ -154,13 +170,20 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: 10,
   },
   cardWrapper: {
     width: CARD_WIDTH,
-    padding: 5,
+    paddingBottom: 5,
   },
   squareCard: {
     width: "100%",
     aspectRatio: 1,
   },
+  containerHeader: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  }
 });

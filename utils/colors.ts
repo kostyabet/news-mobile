@@ -9,6 +9,7 @@ export interface Color {
   languageColor: string;
   linkColor: string;
   bcSubBlockColor: string;
+  placeholderColor: string;
 }
 
 export const lightColors: Color = {
@@ -22,6 +23,7 @@ export const lightColors: Color = {
   themeColor: "#021024",
   languageColor: "#021024",
   linkColor: "#388fe8",
+  placeholderColor: "#d4dbe3",
 };
 
 export const darkColors: Color = {
@@ -35,4 +37,5 @@ export const darkColors: Color = {
   themeColor: "#e7f4ff",
   languageColor: "#e7f4ff",
   linkColor: "#608ded",
+  placeholderColor: "#c7cbcf",
 };

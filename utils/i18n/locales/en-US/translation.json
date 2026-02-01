@@ -54,5 +54,16 @@
     "notFound": "Nothing not found :(",
     "placeholder": "Search...",
     "restrict": "Write at least 3 symbols"
+  },
+  "thread": {
+    "create": {
+      "title": "Create new thread",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "titlePlaceholder": "Global warm...",
+      "descriptionPlaceholder": "This thread is about...",
+      "apply": "Create",
+      "cancel": "Cancel"
+    }
   }
 }
