@@ -1,0 +1,28 @@
+name: Expo Build Check
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  NODE_VERSION: 20.18.0
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify Expo project
+        run: npx expo install --check

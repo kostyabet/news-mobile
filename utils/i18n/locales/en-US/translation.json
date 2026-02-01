@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "tab": "Settings",
+    "title": "Settings",
+    "language": {
+      "title": "Language",
+      "en": "English",
+      "ru": "Russian"
+    },
+    "theme": {
+      "title": "Theme settings",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "contacts": {
+      "title": "Contact us",
+      "button": "View",
+      "linkedin": {
+        "title": "LinkedIn",
+        "url": "https://www.linkedin.com/company/109551914"
+      },
+      "telegram": {
+        "title": "Telegram",
+        "url": "https://t.me/multibelbet"
+      },
+      "github": {
+        "title": "GitHub",
+        "url": "https://github.com/vazonhub"
+      }
+    },
+    "about": {
+      "title": "About",
+      "version": "Version",
+      "build": "Build",
+      "appId": "Application ID",
+      "platform": "Platform",
+      "update": "Update Chanel"
+    },
+    "footer": {
+      "first": "Non commercial project open source project. You can see ",
+      "source_code": "source code",
+      "central": ". and you can visit our site ",
+      "vazon": "vazon.by",
+      "last": "."
+    }
+  },
+  "home": {
+    "tab": "News",
+    "title": "Popular Threads"
+  },
+  "search": {
+    "title": "Search",
+    "notFound": "Nothing not found :(",
+    "placeholder": "Search...",
+    "restrict": "Write at least 3 symbols"
+  }
+}
