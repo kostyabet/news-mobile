@@ -5,6 +5,7 @@ import {
   Animated,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Dimensions,
 } from "react-native";
 import {
   CustomLayout,
@@ -21,6 +22,8 @@ import { NotFound } from "@/utils/components/Search/NotFound";
 import { useThreads } from "@/entities/thread/useThreads";
 
 const SEARCH_BAR_HEIGHT = 80;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
 
 export default function Newspaper() {
   const { threads, isLoading, handleSetSearch } = useThreads();
@@ -80,51 +83,64 @@ export default function Newspaper() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.bcColor }]}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-      showsVerticalScrollIndicator={false}
-      bounces={true}
-    >
-      <CustomLayout>
-        <Animated.View style={animatedContainerStyle}>
-          <CustomSearchBarItem
-            search={searchQuery}
-            handleSearch={(val) => handleSearch(val || "")}
-            onCancel={() => hideSearch()}
-            isAutoFocus={false}
-          />
-        </Animated.View>
+      <ScrollView
+          style={[styles.container, { backgroundColor: colors.bcColor }]}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+      >
+        <CustomLayout>
+          <Animated.View style={animatedContainerStyle}>
+            <CustomSearchBarItem
+                search={searchQuery}
+                handleSearch={(val) => handleSearch(val || "")}
+                onCancel={() => hideSearch()}
+                isAutoFocus={false}
+            />
+          </Animated.View>
 
-        <PageHeader title={t("home.title")} />
+          <PageHeader title={t("home.title")} />
 
-        <View style={styles.cards}>
-          {!isLoading ? (
-            <>
-              {threads && threads.length > 0 ? (
-                threads.map((item, index) => (
-                  <ThreadCard
-                    key={index}
-                    title={item.title}
-                    description={item.description || ""}
-                    reverse={index % 2 === 1}
-                  />
-                ))
-              ) : (
-                <NotFound text={t("search.notFound")} />
-              )}
-            </>
-          ) : (
-            <>
-              {[1, 2, 3, 4, 5].map((_, index) => (
-                <ThreadBlockSkeleton key={index} reverse={index % 2 === 1} />
-              ))}
-            </>
-          )}
-        </View>
-      </CustomLayout>
-    </ScrollView>
+          <View style={styles.cardsContainer}>
+            {!isLoading ? (
+                <>
+                  {threads && threads.length > 0 ? (
+                      <View style={styles.gridContainer}>
+                        {threads.map((item) => {
+                          return (
+                              <View
+                                  key={item.id}
+                                  style={[
+                                    styles.cardWrapper,
+                                  ]}
+                              >
+                                <ThreadCard thread={item} />
+                              </View>
+                          );
+                        })}
+                      </View>
+                  ) : (
+                      <NotFound text={t("search.notFound")} />
+                  )}
+                </>
+            ) : (
+                <View style={styles.gridContainer}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((_, index) => {
+                    return (
+                        <View
+                            key={index}
+                            style={styles.cardWrapper}
+                        >
+                          <ThreadBlockSkeleton />
+                        </View>
+                    );
+                  })}
+                </View>
+            )}
+          </View>
+        </CustomLayout>
+      </ScrollView>
   );
 }
 
@@ -132,8 +148,19 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
   },
-  cards: {
-    gap: 16,
+  cardsContainer: {
     paddingBottom: 20,
+  },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  cardWrapper: {
+    width: CARD_WIDTH,
+    padding: 5,
+  },
+  squareCard: {
+    width: "100%",
+    aspectRatio: 1,
   },
 });

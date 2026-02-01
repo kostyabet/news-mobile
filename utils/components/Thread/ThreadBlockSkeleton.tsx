@@ -2,13 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 
-interface ThreadCardSkeleton {
-  reverse?: boolean;
-}
-
-export const ThreadBlockSkeleton = ({
-  reverse = false,
-}: ThreadCardSkeleton) => {
+export const ThreadBlockSkeleton = () => {
   const opacity = useRef(new Animated.Value(0.3)).current;
   const { colors } = useTheme();
 
@@ -34,7 +28,6 @@ export const ThreadBlockSkeleton = ({
       style={[
         styles.container,
         {
-          flexDirection: reverse ? "row-reverse" : "row",
           backgroundColor: colors.bcBlockColor,
           borderColor: colors.borderColor,
         },
@@ -62,22 +55,6 @@ export const ThreadBlockSkeleton = ({
           ]}
         />
       </View>
-      <View
-        style={[
-          styles.img,
-          { alignItems: reverse ? "flex-start" : "flex-end" },
-        ]}
-      >
-        <Animated.View
-          style={{
-            width: 100,
-            height: 100,
-            backgroundColor: colors.skeletonColor,
-            opacity,
-            borderRadius: 10,
-          }}
-        />
-      </View>
     </View>
   );
 };
@@ -86,8 +63,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     borderRadius: 10,
-    borderStyle: "solid",
-    borderWidth: 0.2,
     padding: 10,
     justifyContent: "space-between",
     gap: 5,

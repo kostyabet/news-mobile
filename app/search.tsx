@@ -1,4 +1,4 @@
-import { CustomLayout, PageHeader } from "@/utils/components";
+import {CustomLayout, PageHeader, ThreadCard} from "@/utils/components";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useState } from "react";
@@ -40,7 +40,7 @@ export default function Search() {
           {threads && threads.length > 0 ? (
             <View style={styles.searchItems}>
               {threads.map((item) => (
-                <SearchItem key={item.id} thread={item} />
+                <ThreadCard key={item.id} thread={item} isSearch/>
               ))}
             </View>
           ) : (

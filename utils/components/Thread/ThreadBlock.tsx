@@ -1,23 +1,30 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
-import { Vazon } from "@/utils/icons";
 import { useTheme } from "@/utils/theme/useTheme";
+import {SearchItem} from "@/utils/components/Search/SearchItem";
+import {Thread} from "@/entities/thread/model";
 
 interface ThreadCardProps {
-  title: string;
-  description: string;
+  thread: Thread;
   reverse?: boolean;
+  isSearch?: boolean;
 }
 
 export const ThreadCard = ({
-  title,
-  description,
+  thread,
   reverse = false,
+  isSearch = false,
 }: ThreadCardProps) => {
   const { colors } = useTheme();
 
+  if (isSearch) return (
+    <SearchItem
+      thread={thread}
+    />
+  )
+
   return (
-    <View
+    <TouchableOpacity
       style={[
         styles.container,
         {
@@ -28,20 +35,12 @@ export const ThreadCard = ({
       ]}
     >
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.textColor }]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.textColor }]}>{thread.title}</Text>
         <Text style={[styles.description, { color: colors.textColor }]}>
-          {description}
+          {thread.description}
         </Text>
       </View>
-      <View
-        style={[
-          styles.img,
-          { alignItems: reverse ? "flex-start" : "flex-end" },
-        ]}
-      >
-        <Vazon width={"100"} height={"100"} />
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
