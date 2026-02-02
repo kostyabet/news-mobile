@@ -30,7 +30,7 @@ export default function Search() {
         <CustomSearchBarItem
           search={search}
           handleSearch={handleSearch}
-          onCancel={() => navigate(".//home")}
+          onCancel={() => navigate("/(tabs)")}
         />
 
         <ScrollView

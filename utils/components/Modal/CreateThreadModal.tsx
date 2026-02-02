@@ -9,29 +9,43 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import {Thread} from "@/entities/thread/model";
+import {CreateEditThread} from "@/entities/thread/model";
 import {useTheme} from "@/utils/theme/useTheme";
-import {useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {CustomButton} from "@/utils/components";
 import {useTranslation} from "react-i18next";
 import {FONT_WEIGHTS, getFontFamily} from "@/utils/fonts";
 
-interface CreateThreadModalProps {
+interface ThreadModalProps {
     visible: boolean;
     onClose: () => void;
-    onCreate: (thread: Thread) => void;
+    onComplete: (thread: CreateEditThread) => Promise<void>;
+    mode: 'create' | 'edit';
+    initTitle?: string;
+    initDescription?: string;
 }
 
-export const CreateThreadModal = ({
+export const ThreadModal = ({
   visible,
   onClose,
-  onCreate,
-}: CreateThreadModalProps) => {
-    const [title, setTitle] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
+  onComplete,
+  mode = 'create',
+  initTitle = '',
+  initDescription = '',
+}: ThreadModalProps) => {
+    const [title, setTitle] = useState<string>(initTitle);
+    const [description, setDescription] = useState<string>(initDescription);
     const [isLoading, setIsLoading] = useState(false);
     const { colors } = useTheme();
     const { t } = useTranslation();
+
+    useEffect(() => {
+        setTitle(initTitle)
+    }, [initTitle])
+
+    useEffect(() => {
+        setDescription(initDescription)
+    }, [initDescription])
 
     const handleCreate = async () => {
         if (!title.trim() || !description.trim()) {
@@ -40,10 +54,12 @@ export const CreateThreadModal = ({
 
         setIsLoading(true);
         try {
-            // await onCreate({ title, description, createAt: new Date()});
+            await onComplete({ title, description });
 
-            setTitle("");
-            setDescription("");
+            if (mode === 'create') {
+                setTitle("");
+                setDescription("");
+            }
             onClose();
         } catch (error) {
             console.error("Error creating thread:", error);
@@ -58,6 +74,26 @@ export const CreateThreadModal = ({
         onClose();
     };
 
+    const labels = useMemo(() => {
+        return (mode === 'create') ? {
+            header: t("thread.create.title"),
+            title: t("thread.create.titleLabel"),
+            titlePlaceholder: t("thread.create.titlePlaceholder"),
+            description: t("thread.create.descriptionLabel"),
+            descriptionPlaceholder: t("thread.create.descriptionPlaceholder"),
+            cancel: t("thread.create.cancel"),
+            create: t("thread.create.apply"),
+        } : {
+            header: t("thread.edit.title"),
+            title: t("thread.edit.titleLabel"),
+            titlePlaceholder: t("thread.edit.titlePlaceholder"),
+            description: t("thread.edit.descriptionLabel"),
+            descriptionPlaceholder: t("thread.edit.descriptionPlaceholder"),
+            cancel: t("thread.edit.cancel"),
+            create: t("thread.edit.apply"),
+        }
+    }, [mode, t]);
+
     return (
         <Modal
             animationType="slide"
@@ -69,10 +105,10 @@ export const CreateThreadModal = ({
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={styles.centeredView}
             >
-                <View style={[styles.modalView, { backgroundColor: colors.bcBlockColor }]}>
+                <View style={[styles.modalView, { backgroundColor: colors.modalColor }]}>
                     <View style={styles.modalHeader}>
                         <Text style={[styles.modalTitle, { color: colors.textColor }]}>
-                            {t("thread.create.title")}
+                            {labels.header}
                         </Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                             <Text style={[styles.closeButtonText, { color: colors.textColor }]}>
@@ -84,7 +120,7 @@ export const CreateThreadModal = ({
                     <ScrollView style={styles.scrollView}>
                         <View style={styles.form}>
                             <Text style={[styles.label, { color: colors.textColor }]}>
-                                {t("thread.create.titleLabel")}
+                                {labels.title}
                             </Text>
                             <TextInput
                                 style={[
@@ -95,7 +131,7 @@ export const CreateThreadModal = ({
                                         borderColor: colors.bcColor,
                                     },
                                 ]}
-                                placeholder={t("thread.create.titlePlaceholder")}
+                                placeholder={labels.titlePlaceholder}
                                 placeholderTextColor={colors.placeholderColor}
                                 value={title}
                                 onChangeText={setTitle}
@@ -104,7 +140,7 @@ export const CreateThreadModal = ({
                             />
 
                             <Text style={[styles.label, { color: colors.textColor }]}>
-                                {t("thread.create.descriptionLabel")}
+                                {labels.description}
                             </Text>
                             <TextInput
                                 style={[
@@ -115,7 +151,7 @@ export const CreateThreadModal = ({
                                         borderColor: colors.bcColor,
                                     },
                                 ]}
-                                placeholder={t("thread.create.descriptionPlaceholder")}
+                                placeholder={labels.descriptionPlaceholder}
                                 placeholderTextColor={colors.placeholderColor}
                                 value={description}
                                 onChangeText={setDescription}
@@ -142,26 +178,19 @@ export const CreateThreadModal = ({
                         <CustomButton
                             onClick={handleCancel}
                         >
-                            {t("thread.create.cancel")}
+                            {labels.cancel}
                         </CustomButton>
 
                         <CustomButton
                             onClick={handleCreate}
-                        //     style={[
-                        //         styles.button,
-                        //         styles.createButton,
-                        //         {
-                        //             backgroundColor:
-                        //                 !title.trim() || !description.trim()
-                        //                     ? colors.disabled
-                        //                     : colors.primary,
-                        //         },
-                        //     ]}
-                        //     textStyle={styles.buttonText}
-                        //     disabled={!title.trim() || !description.trim() || isLoading}
-                        // isLoading={isLoading}
+                            disabled={!title.trim() || !description.trim() || isLoading}
+                            isLoading={isLoading}
+                            bcColor={!title.trim() || !description.trim()
+                                     ? colors.bcSubBlockColor
+                                     : colors.activeTextColor}
+                            textColor={colors.bcColor}
                         >
-                            {t("thread.create.apply")}
+                            {labels.create}
                         </CustomButton>
                     </View>
                 </View>

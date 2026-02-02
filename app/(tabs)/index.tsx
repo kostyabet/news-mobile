@@ -20,15 +20,15 @@ import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
 import { useThreads } from "@/entities/thread/useThreads";
-import {CreateThreadModal} from "@/utils/components/Modal/CreateThreadModal";
-import {Thread} from "@/entities/thread/model";
+import {ThreadModal} from "@/utils/components/Modal/CreateThreadModal";
+import {CreateEditThread} from "@/entities/thread/model";
 
 const SEARCH_BAR_HEIGHT = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
 
 export default function Newspaper() {
-  const { threads, isLoading, handleSetSearch } = useThreads();
+  const { threads, isLoading, handleSetSearch, addThread } = useThreads();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpenCreate, setIsOpenCreate] = useState(false);
 
@@ -37,6 +37,14 @@ export default function Newspaper() {
 
   const searchAnim = useRef(new Animated.Value(0)).current;
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  const handleCreateThread = async (thread: CreateEditThread) => {
+    try {
+      await addThread(thread);
+    } catch {
+      console.error("Failed to add thread", thread);
+    }
+  }
 
   const handleSearch = (search?: string) => {
     setSearchQuery(search || "");
@@ -151,10 +159,11 @@ export default function Newspaper() {
         </CustomLayout>
       </ScrollView>
 
-      <CreateThreadModal
+      <ThreadModal
         visible={isOpenCreate}
         onClose={() => setIsOpenCreate(false)}
-        onCreate={(thread: Thread) => {}}
+        onComplete={handleCreateThread}
+        mode={'create'}
       />
     </>
   );
@@ -170,7 +179,8 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    columnGap: 10,
+    rowGap: 5,
   },
   cardWrapper: {
     width: CARD_WIDTH,

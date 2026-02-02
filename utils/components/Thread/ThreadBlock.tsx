@@ -3,6 +3,7 @@ import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTheme } from "@/utils/theme/useTheme";
 import {SearchItem} from "@/utils/components/Search/SearchItem";
 import {Thread} from "@/entities/thread/model";
+import {router} from "expo-router";
 
 interface ThreadCardProps {
   thread: Thread;
@@ -17,8 +18,16 @@ export const ThreadCard = ({
 }: ThreadCardProps) => {
   const { colors } = useTheme();
 
+  const handlePress = () => {
+    router.push({
+      pathname: '/thread/[id]',
+      params: { id: thread.id.toString() }
+    });
+  };
+
   if (isSearch) return (
     <SearchItem
+      onClick={handlePress}
       thread={thread}
     />
   )
@@ -33,6 +42,7 @@ export const ThreadCard = ({
           backgroundColor: colors.bcBlockColor,
         },
       ]}
+      onPress={handlePress}
     >
       <View style={styles.info}>
         <Text style={[styles.title, { color: colors.textColor }]}>{thread.title}</Text>
@@ -46,16 +56,15 @@ export const ThreadCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    borderRadius: 10,
+    width: '100%',
+    maxHeight: 120,
+    borderRadius: 12,
     padding: 10,
     justifyContent: "space-between",
-    gap: 5,
   },
   title: {
     fontSize: 21,
     fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
-    flexShrink: 1,
   },
   description: {
     fontSize: 14,
@@ -67,9 +76,6 @@ const styles = StyleSheet.create({
     height: 100,
   },
   info: {
-    flex: 5,
-    flexShrink: 1,
     flexDirection: "column",
-    gap: 5,
   },
 });

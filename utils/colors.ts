@@ -10,6 +10,8 @@ export interface Color {
   linkColor: string;
   bcSubBlockColor: string;
   placeholderColor: string;
+  modalColor: string;
+  deleteColor: string;
 }
 
 export const lightColors: Color = {
@@ -24,6 +26,8 @@ export const lightColors: Color = {
   languageColor: "#021024",
   linkColor: "#388fe8",
   placeholderColor: "#d4dbe3",
+  modalColor: "#f8fcff",
+  deleteColor: "#f44336",
 };
 
 export const darkColors: Color = {
@@ -38,4 +42,6 @@ export const darkColors: Color = {
   languageColor: "#e7f4ff",
   linkColor: "#608ded",
   placeholderColor: "#c7cbcf",
+  modalColor: "#383839",
+  deleteColor: "#e84f43",
 };

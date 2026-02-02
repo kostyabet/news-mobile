@@ -4,3 +4,8 @@ export interface Thread {
   description: string;
   createAt: Date;
 }
+
+export interface CreateEditThread {
+  title: string;
+  description: string;
+}

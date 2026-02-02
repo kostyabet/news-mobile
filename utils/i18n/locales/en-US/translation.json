@@ -56,6 +56,13 @@
     "restrict": "Write at least 3 symbols"
   },
   "thread": {
+    "info": {
+      "notFound": "Thread not found",
+      "description": "Description",
+      "createAt": "Last activity",
+      "back": "Back",
+      "delete": "Delete"
+    },
     "create": {
       "title": "Create new thread",
       "titleLabel": "Title",
@@ -63,6 +70,21 @@
       "titlePlaceholder": "Global warm...",
       "descriptionPlaceholder": "This thread is about...",
       "apply": "Create",
+      "cancel": "Cancel"
+    },
+    "edit": {
+      "title": "Edit thread",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "titlePlaceholder": "Global warm...",
+      "descriptionPlaceholder": "This thread is about...",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "title": "Are you sure you want to delete the record?",
+      "description": "The data will be permanently deleted beyond recovery.",
+      "delete": "Delete",
       "cancel": "Cancel"
     }
   }

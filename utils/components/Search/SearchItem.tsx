@@ -5,9 +5,10 @@ import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 
 interface SearchItemProps {
   thread: Thread;
+  onClick: () => void;
 }
 
-export const SearchItem = ({ thread }: SearchItemProps) => {
+export const SearchItem = ({ thread, onClick }: SearchItemProps) => {
   const { colors } = useTheme();
 
   return (
@@ -18,12 +19,13 @@ export const SearchItem = ({ thread }: SearchItemProps) => {
           backgroundColor: colors.bcBlockColor,
         },
       ]}
+      onPress={() => onClick()}
     >
-      <View>
+      <View style={styles.content}>
         <Text style={[ styles.header, { color: colors.textColor }]}>{thread.title}</Text>
         <Text style={[ styles.desctiption, { color: colors.textColor }]}>{thread.description}</Text>
       </View>
-      <Text>{">"}</Text>
+      <Text style={{ color: colors.textColor }}>{">"}</Text>
     </TouchableOpacity>
   );
 };
@@ -37,6 +39,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    maxHeight: 65,
+  },
+  content: {
+    flex: 1,
+    flexDirection: "column",
+    maxWidth: '90%'
   },
   header: {
     fontSize: 16,
@@ -45,5 +53,6 @@ const styles = StyleSheet.create({
   desctiption: {
     fontSize: 12,
     fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
+    flexShrink: 1,
   },
 });
