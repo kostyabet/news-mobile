@@ -9,7 +9,7 @@ import {useTranslation} from "react-i18next";
 import {ThreadInfoBlock} from "@/utils/components/Thread/ThreadInfoBlock";
 import i18n from "i18next";
 import {Ionicons} from "@expo/vector-icons";
-import {ThreadModal} from "@/utils/components/Modal/CreateThreadModal";
+import {ThreadModal} from "@/utils/components/Modal/ThreadModal";
 import {CreateEditThread} from "@/entities/thread/model";
 
 export default function ThreadDetailScreen() {

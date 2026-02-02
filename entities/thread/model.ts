@@ -8,4 +8,5 @@ export interface Thread {
 export interface CreateEditThread {
   title: string;
   description: string;
+  createAt: Date;
 }

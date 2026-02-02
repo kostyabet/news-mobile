@@ -70,7 +70,9 @@
       "titlePlaceholder": "Global warm...",
       "descriptionPlaceholder": "This thread is about...",
       "apply": "Create",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "date": "Date of start",
+      "datePlaceholder": "DD-MM-YYYY"
     },
     "edit": {
       "title": "Edit thread",

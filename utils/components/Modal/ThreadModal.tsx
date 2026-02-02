@@ -15,6 +15,7 @@ import {useEffect, useMemo, useState} from "react";
 import {CustomButton} from "@/utils/components";
 import {useTranslation} from "react-i18next";
 import {FONT_WEIGHTS, getFontFamily} from "@/utils/fonts";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface ThreadModalProps {
     visible: boolean;
@@ -23,6 +24,7 @@ interface ThreadModalProps {
     mode: 'create' | 'edit';
     initTitle?: string;
     initDescription?: string;
+    initDate?: Date;
 }
 
 export const ThreadModal = ({
@@ -32,20 +34,20 @@ export const ThreadModal = ({
   mode = 'create',
   initTitle = '',
   initDescription = '',
+  initDate = new Date(),
 }: ThreadModalProps) => {
     const [title, setTitle] = useState<string>(initTitle);
     const [description, setDescription] = useState<string>(initDescription);
+    const [date, setDate] = useState(initDate);
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { colors } = useTheme();
     const { t } = useTranslation();
 
     useEffect(() => {
-        setTitle(initTitle)
-    }, [initTitle])
-
-    useEffect(() => {
-        setDescription(initDescription)
-    }, [initDescription])
+        setTitle(initTitle);
+        setDescription(initDescription);
+    }, [initTitle, initDescription]);
 
     const handleCreate = async () => {
         if (!title.trim() || !description.trim()) {
@@ -54,11 +56,12 @@ export const ThreadModal = ({
 
         setIsLoading(true);
         try {
-            await onComplete({ title, description });
+            await onComplete({ title, description, createAt: date });
 
             if (mode === 'create') {
                 setTitle("");
                 setDescription("");
+                setDate(new Date());
             }
             onClose();
         } catch (error) {
@@ -71,7 +74,19 @@ export const ThreadModal = ({
     const handleCancel = () => {
         setTitle("");
         setDescription("");
+        setDate(new Date());
+        setShowDatePicker(false);
         onClose();
+    };
+
+    const handleDateChange = (event: any, selectedDate?: Date) => {
+        if (selectedDate) {
+            setDate(selectedDate);
+        }
+    };
+
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-CA'); // Формат YYYY-MM-DD
     };
 
     const labels = useMemo(() => {
@@ -83,6 +98,8 @@ export const ThreadModal = ({
             descriptionPlaceholder: t("thread.create.descriptionPlaceholder"),
             cancel: t("thread.create.cancel"),
             create: t("thread.create.apply"),
+            date: t("thread.create.date"),
+            datePlaceholder: t("thread.create.datePlaceholder"),
         } : {
             header: t("thread.edit.title"),
             title: t("thread.edit.titleLabel"),
@@ -91,6 +108,8 @@ export const ThreadModal = ({
             descriptionPlaceholder: t("thread.edit.descriptionPlaceholder"),
             cancel: t("thread.edit.cancel"),
             create: t("thread.edit.apply"),
+            date: t("thread.edit.date"),
+            datePlaceholder: t("thread.edit.datePlaceholder"),
         }
     }, [mode, t]);
 
@@ -138,6 +157,40 @@ export const ThreadModal = ({
                                 maxLength={100}
                                 autoFocus={true}
                             />
+
+                            <Text style={[styles.label, { color: colors.textColor }]}>
+                                {labels.date}
+                            </Text>
+                            <TouchableOpacity
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: colors.bcSubBlockColor,
+                                        borderColor: colors.bcColor,
+                                        justifyContent: 'center',
+                                    },
+                                ]}
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <Text style={[
+                                    styles.dateText,
+                                    {
+                                        color: date ? colors.textColor : colors.placeholderColor
+                                    }
+                                ]}>
+                                    {date ? formatDate(date) : labels.datePlaceholder}
+                                </Text>
+                            </TouchableOpacity>
+
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={handleDateChange}
+                                    maximumDate={new Date()}
+                                />
+                            )}
 
                             <Text style={[styles.label, { color: colors.textColor }]}>
                                 {labels.description}
@@ -235,6 +288,10 @@ const styles = StyleSheet.create({
     },
     form: {
         paddingBottom: 20,
+    },
+    dateText: {
+        fontSize: 16,
+        fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
     },
     label: {
         fontSize: 16,

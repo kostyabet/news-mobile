@@ -70,7 +70,9 @@
       "titlePlaceholder": "Глобальное потепление...",
       "descriptionPlaceholder": "Данная тема описывает...",
       "apply": "Создать",
-      "cancel": "Отмена"
+      "cancel": "Отмена",
+      "date": "Дата старта обсуждения",
+      "datePlaceholder": "DD-MM-YYYY"
     },
     "edit": {
       "title": "Редактирование темы",

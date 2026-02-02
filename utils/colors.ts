@@ -42,6 +42,6 @@ export const darkColors: Color = {
   languageColor: "#e7f4ff",
   linkColor: "#608ded",
   placeholderColor: "#c7cbcf",
-  modalColor: "#383839",
+  modalColor: "#191818",
   deleteColor: "#e84f43",
 };

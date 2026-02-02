@@ -59,13 +59,13 @@ export const ThreadProvider: React.FC<ThreadProviderProps> = ({ children }) => {
         }
     };
 
-    const addThread = async (threadData: Omit<Thread, 'id' | 'createAt'>) => {
+    const addThread = async (threadData: Omit<Thread, 'id'>) => {
         try {
             const newId = threads.length > 0 ? Math.max(...threads.map(t => t.id)) + 1 : 0;
             const newThread: Thread = {
                 ...threadData,
                 id: newId,
-                createAt: new Date(),
+                createAt: threadData.createAt || new Date(),
             };
 
             const updatedThreads = [...threads, newThread];
@@ -77,7 +77,7 @@ export const ThreadProvider: React.FC<ThreadProviderProps> = ({ children }) => {
         }
     };
 
-    const updateThread = async (id: number, updates: Partial<Omit<Thread, 'id' | 'createAt'>>) => {
+    const updateThread = async (id: number, updates: Partial<Omit<Thread, 'id'>>) => {
         try {
             const updatedThreads = threads.map(thread =>
                 thread.id === id ? { ...thread, ...updates } : thread

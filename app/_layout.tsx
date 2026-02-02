@@ -5,9 +5,7 @@ import "@/utils/i18n";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import {ThreadProvider} from "@/entities/thread/ThreadProvider";
-import { Stack } from "expo-router"; // Импортируем Stack
-
-SplashScreen.preventAutoHideAsync();
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({

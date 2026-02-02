@@ -20,7 +20,7 @@ import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
 import { useThreads } from "@/entities/thread/useThreads";
-import {ThreadModal} from "@/utils/components/Modal/CreateThreadModal";
+import {ThreadModal} from "@/utils/components/Modal/ThreadModal";
 import {CreateEditThread} from "@/entities/thread/model";
 
 const SEARCH_BAR_HEIGHT = 80;
