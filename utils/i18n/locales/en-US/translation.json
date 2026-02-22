@@ -47,7 +47,7 @@
   },
   "home": {
     "tab": "News",
-    "title": "Popular Threads"
+    "title": "Popular Articles"
   },
   "search": {
     "title": "Search",
@@ -57,31 +57,34 @@
   },
   "thread": {
     "info": {
-      "notFound": "Thread not found",
-      "description": "Description",
+      "notFound": "Article not found",
+      "content": "Content",
+      "slug": "Slug",
       "createAt": "Last activity",
       "back": "Back",
       "delete": "Delete"
     },
     "create": {
-      "title": "Create new thread",
+      "title": "Create new article",
       "titleLabel": "Title",
-      "descriptionLabel": "Description",
+      "contentLabel": "Content",
       "titlePlaceholder": "Global warm...",
-      "descriptionPlaceholder": "This thread is about...",
+      "contentPlaceholder": "This article is about...",
       "apply": "Create",
       "cancel": "Cancel",
-      "date": "Date of start",
-      "datePlaceholder": "DD-MM-YYYY"
+      "slug": "Slug",
+      "slugPlaceholder": "Short description of choosen theme"
     },
     "edit": {
-      "title": "Edit thread",
+      "title": "Edit article",
       "titleLabel": "Title",
-      "descriptionLabel": "Description",
+      "contentLabel": "Content",
       "titlePlaceholder": "Global warm...",
-      "descriptionPlaceholder": "This thread is about...",
+      "contentPlaceholder": "This article is about...",
       "apply": "Apply",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "slug": "Slug",
+      "slugPlaceholder": "Short description of choosen theme"
     },
     "delete": {
       "title": "Are you sure you want to delete the record?",

@@ -47,7 +47,7 @@
   },
   "home": {
     "tab": "Новости",
-    "title": "Популярные темы"
+    "title": "Популярные статьи"
   },
   "search": {
     "title": "Поиск",
@@ -57,31 +57,34 @@
   },
   "thread": {
     "info": {
-      "notFound": "Тема не найдена",
-      "description": "Описание",
+      "notFound": "Статья не найдена",
+      "content": "Содержание",
+      "slug": "Короткое описание",
       "createAt": "Время последней активности",
       "back": "Назад",
       "delete": "Удалить"
     },
     "create": {
-      "title": "Создание новой темы",
+      "title": "Создание новой статьи",
       "titleLabel": "Заголовок",
-      "descriptionLabel": "Описание",
+      "contentLabel": "Содержание",
       "titlePlaceholder": "Глобальное потепление...",
-      "descriptionPlaceholder": "Данная тема описывает...",
+      "contentPlaceholder": "Данная статья описывает...",
       "apply": "Создать",
       "cancel": "Отмена",
-      "date": "Дата старта обсуждения",
-      "datePlaceholder": "DD-MM-YYYY"
+      "slug": "Короткое описание",
+      "slugPlaceholder": "Краткое описание выбранной темы"
     },
     "edit": {
-      "title": "Редактирование темы",
+      "title": "Редактирование статьи",
       "titleLabel": "Заголовок",
-      "descriptionLabel": "Описание",
+      "contentLabel": "Содержание",
       "titlePlaceholder": "Глобальное потепление...",
-      "descriptionPlaceholder": "Данная тема описывает...",
+      "contentPlaceholder": "Данная статья описывает...",
       "apply": "Применить",
-      "cancel": "Отмена"
+      "cancel": "Отмена",
+      "slug": "Короткое описание",
+      "slugPlaceholder": "Краткое описание выбранной темы"
     },
     "delete": {
       "title": "Вы уверенны, что хотите удалить запись?",

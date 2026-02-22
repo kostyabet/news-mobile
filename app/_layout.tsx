@@ -4,7 +4,7 @@ import { ThemedStatusBar } from "@/utils/components/ThemedStatusBar";
 import "@/utils/i18n";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import {ThreadProvider} from "@/entities/thread/ThreadProvider";
+import { ArticleProvider } from "@/entities/article/ArticleProvider";
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
@@ -28,7 +28,7 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider>
-            <ThreadProvider>
+            <ArticleProvider>
                 <ThemedStatusBar />
                 <Stack>
                     <Stack.Screen
@@ -37,11 +37,11 @@ export default function RootLayout() {
                     />
 
                     <Stack.Screen
-                        name="thread/[id]"
+                        name="article/[id]"
                         options={{ headerShown: false }}
                     />
                 </Stack>
-            </ThreadProvider>
+            </ArticleProvider>
         </ThemeProvider>
     );
 }

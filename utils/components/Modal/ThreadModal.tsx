@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import {CreateEditThread} from "@/entities/thread/model";
+import {CreateEditArticle} from "@/entities/article/model";
 import {useTheme} from "@/utils/theme/useTheme";
 import {useEffect, useMemo, useState} from "react";
 import {CustomButton} from "@/utils/components";
@@ -17,14 +17,14 @@ import {useTranslation} from "react-i18next";
 import {FONT_WEIGHTS, getFontFamily} from "@/utils/fonts";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-interface ThreadModalProps {
+interface ArticleModalProps {
     visible: boolean;
     onClose: () => void;
-    onComplete: (thread: CreateEditThread) => Promise<void>;
+    onComplete: (article: CreateEditArticle) => Promise<void>;
     mode: 'create' | 'edit';
     initTitle?: string;
-    initDescription?: string;
-    initDate?: Date;
+    initContent?: string;
+    initSlug?: string;
 }
 
 export const ThreadModal = ({
@@ -33,35 +33,35 @@ export const ThreadModal = ({
   onComplete,
   mode = 'create',
   initTitle = '',
-  initDescription = '',
-  initDate = new Date(),
-}: ThreadModalProps) => {
+  initContent = '',
+  initSlug = '',
+}: ArticleModalProps) => {
     const [title, setTitle] = useState<string>(initTitle);
-    const [description, setDescription] = useState<string>(initDescription);
-    const [date, setDate] = useState(initDate);
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [content, setContent] = useState<string>(initContent);
+    const [slug, setSlug] = useState<string>(initSlug)
     const [isLoading, setIsLoading] = useState(false);
     const { colors } = useTheme();
     const { t } = useTranslation();
 
     useEffect(() => {
         setTitle(initTitle);
-        setDescription(initDescription);
-    }, [initTitle, initDescription]);
+        setContent(initContent);
+        setSlug(initSlug)
+    }, [initTitle, initContent, initSlug]);
 
     const handleCreate = async () => {
-        if (!title.trim() || !description.trim()) {
+        if (!title.trim() || !content.trim() || !slug.trim()) {
             return;
         }
 
         setIsLoading(true);
         try {
-            await onComplete({ title, description, createAt: date });
+            await onComplete({ a_title: title, a_content: content, a_slug: slug });
 
             if (mode === 'create') {
                 setTitle("");
-                setDescription("");
-                setDate(new Date());
+                setContent("");
+                setSlug("")
             }
             onClose();
         } catch (error) {
@@ -73,20 +73,9 @@ export const ThreadModal = ({
 
     const handleCancel = () => {
         setTitle("");
-        setDescription("");
-        setDate(new Date());
-        setShowDatePicker(false);
+        setContent("");
+        setSlug("");
         onClose();
-    };
-
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        if (selectedDate) {
-            setDate(selectedDate);
-        }
-    };
-
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('en-CA'); // Формат YYYY-MM-DD
     };
 
     const labels = useMemo(() => {
@@ -94,22 +83,22 @@ export const ThreadModal = ({
             header: t("thread.create.title"),
             title: t("thread.create.titleLabel"),
             titlePlaceholder: t("thread.create.titlePlaceholder"),
-            description: t("thread.create.descriptionLabel"),
-            descriptionPlaceholder: t("thread.create.descriptionPlaceholder"),
+            content: t("thread.create.contentLabel"),
+            contentPlaceholder: t("thread.create.contentPlaceholder"),
             cancel: t("thread.create.cancel"),
             create: t("thread.create.apply"),
-            date: t("thread.create.date"),
-            datePlaceholder: t("thread.create.datePlaceholder"),
+            slug: t("thread.create.slug"),
+            slugPlaceholder: t("thread.create.slugPlaceholder"),
         } : {
             header: t("thread.edit.title"),
             title: t("thread.edit.titleLabel"),
             titlePlaceholder: t("thread.edit.titlePlaceholder"),
-            description: t("thread.edit.descriptionLabel"),
-            descriptionPlaceholder: t("thread.edit.descriptionPlaceholder"),
+            content: t("thread.edit.contentLabel"),
+            contentPlaceholder: t("thread.edit.contentPlaceholder"),
             cancel: t("thread.edit.cancel"),
             create: t("thread.edit.apply"),
-            date: t("thread.edit.date"),
-            datePlaceholder: t("thread.edit.datePlaceholder"),
+            slug: t("thread.edit.slug"),
+            slugPlaceholder: t("thread.edit.slugPlaceholder"),
         }
     }, [mode, t]);
 
@@ -159,41 +148,7 @@ export const ThreadModal = ({
                             />
 
                             <Text style={[styles.label, { color: colors.textColor }]}>
-                                {labels.date}
-                            </Text>
-                            <TouchableOpacity
-                                style={[
-                                    styles.input,
-                                    {
-                                        backgroundColor: colors.bcSubBlockColor,
-                                        borderColor: colors.bcColor,
-                                        justifyContent: 'center',
-                                    },
-                                ]}
-                                onPress={() => setShowDatePicker(true)}
-                            >
-                                <Text style={[
-                                    styles.dateText,
-                                    {
-                                        color: date ? colors.textColor : colors.placeholderColor
-                                    }
-                                ]}>
-                                    {date ? formatDate(date) : labels.datePlaceholder}
-                                </Text>
-                            </TouchableOpacity>
-
-                            {showDatePicker && (
-                                <DateTimePicker
-                                    value={date}
-                                    mode="date"
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={handleDateChange}
-                                    maximumDate={new Date()}
-                                />
-                            )}
-
-                            <Text style={[styles.label, { color: colors.textColor }]}>
-                                {labels.description}
+                                {labels.content}
                             </Text>
                             <TextInput
                                 style={[
@@ -204,10 +159,10 @@ export const ThreadModal = ({
                                         borderColor: colors.bcColor,
                                     },
                                 ]}
-                                placeholder={labels.descriptionPlaceholder}
+                                placeholder={labels.contentPlaceholder}
                                 placeholderTextColor={colors.placeholderColor}
-                                value={description}
-                                onChangeText={setDescription}
+                                value={content}
+                                onChangeText={setContent}
                                 multiline={true}
                                 numberOfLines={4}
                                 textAlignVertical="top"
@@ -221,7 +176,43 @@ export const ThreadModal = ({
                                         { color: colors.activeTextColor },
                                     ]}
                                 >
-                                    {description.length}/500
+                                    {content.length}/500
+                                </Text>
+                            </View>
+
+                            <Text style={[styles.label, { color: colors.textColor }]}>
+                                {labels.slug}
+                            </Text>
+                            <TextInput
+                                style={[
+                                    styles.textarea,
+                                    {
+                                        minHeight: 65
+                                    },
+                                    {
+                                        backgroundColor: colors.bcSubBlockColor,
+                                        color: colors.textColor,
+                                        borderColor: colors.bcColor,
+                                    },
+                                ]}
+                                placeholder={labels.slugPlaceholder}
+                                placeholderTextColor={colors.placeholderColor}
+                                value={slug}
+                                onChangeText={setSlug}
+                                multiline={true}
+                                numberOfLines={4}
+                                textAlignVertical="top"
+                                maxLength={100}
+                            />
+
+                            <View style={styles.characterCount}>
+                                <Text
+                                    style={[
+                                        styles.characterCountText,
+                                        { color: colors.activeTextColor },
+                                    ]}
+                                >
+                                    {slug.length}/100
                                 </Text>
                             </View>
                         </View>
@@ -236,9 +227,9 @@ export const ThreadModal = ({
 
                         <CustomButton
                             onClick={handleCreate}
-                            disabled={!title.trim() || !description.trim() || isLoading}
+                            disabled={!title.trim() || !content.trim() || !slug.trim() || isLoading}
                             isLoading={isLoading}
-                            bcColor={!title.trim() || !description.trim()
+                            bcColor={!title.trim() || !content.trim() || !slug.trim()
                                      ? colors.bcSubBlockColor
                                      : colors.activeTextColor}
                             textColor={colors.bcColor}
@@ -256,7 +247,6 @@ const styles = StyleSheet.create({
     centeredView: {
         flex: 1,
         justifyContent: "flex-end",
-        // backgroundColor: "rgba(0, 0, 0, 0.1)",
     },
     modalView: {
         borderTopLeftRadius: 20,
@@ -313,7 +303,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         fontSize: 16,
-        minHeight: 120,
+        minHeight: 80,
         marginBottom: 8,
         fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
     },

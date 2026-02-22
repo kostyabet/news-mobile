@@ -38,3 +38,7 @@ yarn-error.*
 *.tsbuildinfo
 ios/
 android/
+
+
+.env
+.env.development

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 
-export const ThreadBlockSkeleton = () => {
+export const ArticleBlockSkeleton = () => {
   const opacity = useRef(new Animated.Value(0.3)).current;
   const { colors } = useTheme();
 

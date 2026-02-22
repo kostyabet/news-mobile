@@ -1,14 +1,14 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Thread } from "@/entities/thread/model";
+import { Article } from "@/entities/article/model";
 import { useTheme } from "@/utils/theme/useTheme";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 
 interface SearchItemProps {
-  thread: Thread;
+  article: Article;
   onClick: () => void;
 }
 
-export const SearchItem = ({ thread, onClick }: SearchItemProps) => {
+export const SearchItem = ({ article, onClick }: SearchItemProps) => {
   const { colors } = useTheme();
 
   return (
@@ -22,8 +22,8 @@ export const SearchItem = ({ thread, onClick }: SearchItemProps) => {
       onPress={() => onClick()}
     >
       <View style={styles.content}>
-        <Text style={[ styles.header, { color: colors.textColor }]}>{thread.title}</Text>
-        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{thread.description}</Text>
+        <Text style={[ styles.header, { color: colors.textColor }]}>{article.a_title}</Text>
+        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{article.a_slug}</Text>
       </View>
       <Text style={{ color: colors.textColor }}>{">"}</Text>
     </TouchableOpacity>

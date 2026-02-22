@@ -1,20 +1,19 @@
-import {CustomLayout, PageHeader, ThreadCard} from "@/utils/components";
+import {CustomLayout, PageHeader, ArticleCard} from "@/utils/components";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useState } from "react";
 import { useDebounce } from "@/utils/debounce";
-import { SearchItem } from "@/utils/components/Search/SearchItem";
 import { navigate } from "expo-router/build/global-state/routing";
 import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { NotFound } from "@/utils/components/Search/NotFound";
 import { useTranslation } from "react-i18next";
-import {useThreads} from "@/entities/thread/useThreads";
+import { useArticles } from "@/entities/article/useArticles";
 
 export default function Search() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const [search, setSearch] = useState<string>("");
-  const { threads, handleSetSearch } = useThreads();
+  const { articles, handleSetSearch } = useArticles();
 
   const handleSearch = (search?: string) => {
     setSearch(search || "");
@@ -37,10 +36,10 @@ export default function Search() {
           style={styles.searchScroll}
           showsVerticalScrollIndicator={false}
         >
-          {threads && threads.length > 0 ? (
+          {articles && articles.length > 0 ? (
             <View style={styles.searchItems}>
-              {threads.map((item) => (
-                <ThreadCard key={item.id} thread={item} isSearch/>
+              {articles.map((item) => (
+                <ArticleCard key={item.a_id} article={item} isSearch/>
               ))}
             </View>
           ) : (

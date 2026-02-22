@@ -2,51 +2,50 @@ import {router, useLocalSearchParams} from 'expo-router';
 import React, {useEffect, useState} from 'react';
 import {Alert, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useTheme} from '@/utils/theme/useTheme';
-import {useThreads} from '@/entities/thread/useThreads';
+import {useArticles} from '@/entities/article/useArticles';
 import {CustomButton, CustomLayout, ReturnButton} from '@/utils/components';
 import {FONT_WEIGHTS, getFontFamily} from "@/utils/fonts";
 import {useTranslation} from "react-i18next";
-import {ThreadInfoBlock} from "@/utils/components/Thread/ThreadInfoBlock";
-import i18n from "i18next";
+import {ThreadInfoBlock} from "@/utils/components/Article/ThreadInfoBlock";
 import {Ionicons} from "@expo/vector-icons";
 import {ThreadModal} from "@/utils/components/Modal/ThreadModal";
-import {CreateEditThread} from "@/entities/thread/model";
+import {CreateEditArticle} from "@/entities/article/model";
 
 export default function ThreadDetailScreen() {
     const params = useLocalSearchParams<{ id: string }>();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { colors } = useTheme();
-    const { threads, updateThread, deleteThread } = useThreads();
+    const { articles, updateArticle, deleteArticle } = useArticles();
     const { t } = useTranslation();
 
-    const threadId = parseInt(params.id, 10);
-    const [thread, setThread] = useState(() =>
-        threads.find(t => t.id === threadId)
+    const articleId = parseInt(params.id, 10);
+    const [article, setArticle] = useState(() =>
+        articles.find(t => t.a_id === articleId)
     );
 
-    const handleEditThread = async (thread: CreateEditThread) => {
+    const handleEditThread = async (article: CreateEditArticle) => {
         try {
-            await updateThread(threadId, thread);
+            await updateArticle(articleId, article);
         } catch {
-            console.error('Error updating thread', thread);
+            console.error('Error updating article', article);
         }
     }
 
-    const handleDeleteThread = async (threadId: number) => {
+    const handleDeleteThread = async (articleId: number) => {
         try {
-            await deleteThread(threadId);
+            await deleteArticle(articleId);
 
             router.back()
         } catch {
-            console.error('Error deleting thread', thread);
+            console.error('Error deleting article', article);
         }
     }
 
     const handleDelete = () => {
         Alert.alert(
             t('thread.delete.title'), // Заголовок
-            t('thread.delete.description'), // Сообщение
+            t('thread.delete.content'), // Сообщение
             [
                 {
                     text: t('thread.delete.cancel'),
@@ -55,7 +54,7 @@ export default function ThreadDetailScreen() {
                 {
                     text: t('thread.delete.delete'),
                     style: 'destructive',
-                    onPress: () => handleDeleteThread(threadId),
+                    onPress: () => handleDeleteThread(articleId),
                 },
             ],
             { cancelable: true }
@@ -63,11 +62,11 @@ export default function ThreadDetailScreen() {
     };
 
     useEffect(() => {
-        const currentThread = threads.find(t => t.id === threadId);
-        setThread(currentThread);
-    }, [threads, threadId]);
+        const currentThread = articles.find(a => a.a_id === articleId);
+        setArticle(currentThread);
+    }, [articles, articleId]);
 
-    if (!thread) {
+    if (!article) {
         return (
             <View style={[styles.notFound, { backgroundColor: colors.bcColor }]}>
                 <Text style={[styles.notFoundText, { color: colors.textColor }]}>
@@ -93,18 +92,11 @@ export default function ThreadDetailScreen() {
 
                     <View style={styles.content}>
                         <Text style={[styles.title, { color: colors.textColor }]}>
-                            {thread.title}
+                            {article.a_title}
                         </Text>
 
-                        <ThreadInfoBlock title={t('thread.info.description')} content={thread.description} />
-                        <ThreadInfoBlock
-                            title={t('thread.info.createAt')}
-                            content={new Intl.DateTimeFormat(i18n.language, {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            }).format(thread.createAt)}
-                        />
+                        <ThreadInfoBlock title={t('thread.info.slug')} content={article.a_slug} />
+                        <ThreadInfoBlock title={t('thread.info.content')} content={article.a_content} />
 
                         <CustomButton onClick={handleDelete} textColor={colors.deleteColor}>
                             {t('thread.info.delete')}
@@ -118,8 +110,9 @@ export default function ThreadDetailScreen() {
                 onClose={() => setIsModalOpen(false)}
                 mode={'edit'}
                 onComplete={handleEditThread}
-                initDescription={thread.description}
-                initTitle={thread.title}
+                initContent={article.a_content}
+                initTitle={article.a_title}
+                initSlug={article.a_slug}
             />
         </>
     );

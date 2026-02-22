@@ -15,6 +15,7 @@
     "@react-native-community/datetimepicker": "^8.6.0",
     "@react-native-segmented-control/segmented-control": "2.5.7",
     "@types/react-native-elements": "^0.16.4",
+    "axios": "^1.13.5",
     "eslint-config-expo": "^10.0.0",
     "expo": "~54.0.32",
     "expo-application": "^7.0.8",
@@ -35,6 +36,7 @@
     "react-dom": "19.1.0",
     "react-i18next": "^16.5.3",
     "react-native": "0.81.5",
+    "react-native-config": "^1.6.1",
     "react-native-device-info": "^15.0.1",
     "react-native-elements": "^3.4.3",
     "react-native-paper": "^5.14.5",
@@ -48,6 +50,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
+    "dotenv": "^17.3.1",
     "typescript": "~5.9.2"
   },
   "private": true

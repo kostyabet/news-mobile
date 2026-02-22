@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import {
   CustomLayout,
-  ThreadCard,
+  ArticleCard,
   PageHeader,
-  ThreadBlockSkeleton, CustomButton,
+  ArticleBlockSkeleton, CustomButton,
 } from "@/utils/components";
 import { useRef, useState } from "react";
 import { useTheme } from "@/utils/theme/useTheme";
@@ -19,16 +19,16 @@ import { useTranslation } from "react-i18next";
 import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
 import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
-import { useThreads } from "@/entities/thread/useThreads";
+import { useArticles } from "@/entities/article/useArticles";
 import {ThreadModal} from "@/utils/components/Modal/ThreadModal";
-import {CreateEditThread} from "@/entities/thread/model";
+import {CreateEditArticle} from "@/entities/article/model";
 
 const SEARCH_BAR_HEIGHT = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
 
 export default function Newspaper() {
-  const { threads, isLoading, handleSetSearch, addThread } = useThreads();
+  const { articles, isLoading, handleSetSearch, addArticle } = useArticles();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpenCreate, setIsOpenCreate] = useState(false);
 
@@ -38,11 +38,11 @@ export default function Newspaper() {
   const searchAnim = useRef(new Animated.Value(0)).current;
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  const handleCreateThread = async (thread: CreateEditThread) => {
+  const handleCreateArticle = async (article: CreateEditArticle) => {
     try {
-      await addThread(thread);
+      await addArticle(article);
     } catch {
-      console.error("Failed to add thread", thread);
+      console.error("Failed to add thread", article);
     }
   }
 
@@ -122,17 +122,17 @@ export default function Newspaper() {
           <View style={styles.cardsContainer}>
             {!isLoading ? (
                 <>
-                  {threads && threads.length > 0 ? (
+                  {articles && articles.length > 0 ? (
                       <View style={styles.gridContainer}>
-                        {threads.map((item) => {
+                        {articles.map((item) => {
                           return (
                               <View
-                                  key={item.id}
+                                  key={item.a_id}
                                   style={[
                                     styles.cardWrapper,
                                   ]}
                               >
-                                <ThreadCard thread={item} />
+                                <ArticleCard article={item} />
                               </View>
                           );
                         })}
@@ -149,7 +149,7 @@ export default function Newspaper() {
                             key={index}
                             style={styles.cardWrapper}
                         >
-                          <ThreadBlockSkeleton />
+                          <ArticleBlockSkeleton />
                         </View>
                     );
                   })}
@@ -162,7 +162,7 @@ export default function Newspaper() {
       <ThreadModal
         visible={isOpenCreate}
         onClose={() => setIsOpenCreate(false)}
-        onComplete={handleCreateThread}
+        onComplete={handleCreateArticle}
         mode={'create'}
       />
     </>

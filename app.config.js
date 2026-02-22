@@ -1,4 +1,6 @@
-{
+import 'dotenv/config';
+
+export default {
   "expo": {
     "name": "Vazon News",
     "slug": "vazon",
@@ -88,10 +90,11 @@
       "typedRoutes": true
     },
     "extra": {
+      apiUrl: process.env.API_URL,
       "router": {},
       "eas": {
         "projectId": "9d29b229-3dc6-4123-a07a-f6eb28ee5a38"
       }
-    }
+    },
   }
 }

@@ -2,33 +2,33 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTheme } from "@/utils/theme/useTheme";
 import {SearchItem} from "@/utils/components/Search/SearchItem";
-import {Thread} from "@/entities/thread/model";
+import {Article} from "@/entities/article/model";
 import {router} from "expo-router";
 
-interface ThreadCardProps {
-  thread: Thread;
+interface ArticleCardProps {
+  article: Article;
   reverse?: boolean;
   isSearch?: boolean;
 }
 
-export const ThreadCard = ({
-  thread,
+export const ArticleCard = ({
+  article,
   reverse = false,
   isSearch = false,
-}: ThreadCardProps) => {
+}: ArticleCardProps) => {
   const { colors } = useTheme();
 
   const handlePress = () => {
     router.push({
-      pathname: '/thread/[id]',
-      params: { id: thread.id.toString() }
+      pathname: '/article/[id]',
+      params: { id: article.a_id.toString() }
     });
   };
 
   if (isSearch) return (
     <SearchItem
       onClick={handlePress}
-      thread={thread}
+      article={article}
     />
   )
 
@@ -45,9 +45,9 @@ export const ThreadCard = ({
       onPress={handlePress}
     >
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.textColor }]}>{thread.title}</Text>
+        <Text style={[styles.title, { color: colors.textColor }]}>{article.a_title}</Text>
         <Text style={[styles.description, { color: colors.textColor }]}>
-          {thread.description}
+          {article.a_slug}
         </Text>
       </View>
     </TouchableOpacity>
