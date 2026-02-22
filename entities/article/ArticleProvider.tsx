@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
-import {Article} from "@/entities/article/model";
+import {Article, CreateEditArticle} from "@/entities/article/model";
 import {ArticlesContext, ArticleContextType} from "@/entities/article/ArticleContext";
 import { useApi } from "../api/useApi";
 import { getAllArticles } from "../services/article";
@@ -35,12 +35,12 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
         setDebounceSearch(search || "");
     };
 
-    const addArticle = async (threadData: Omit<Article, 'a_id'>) => {
+    const addArticle = async (threadData: CreateEditArticle) => {
         try {
-            const newId = articles.length > 0 ? Math.max(...articles.map(a => a.a_id)) + 1 : 0;
+            const newId = articles.length > 0 ? Math.max(...articles.map(a => a.id)) + 1 : 0;
             const newArticle: Article = {
                 ...threadData,
-                a_id: newId,
+                id: newId,
             };
 
             const updatedThreads = [...articles, newArticle];
@@ -51,10 +51,10 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
         }
     };
 
-    const updateArticle = async (id: number, updates: Partial<Omit<Article, 'a_id'>>) => {
+    const updateArticle = async (id: number, updates: Partial<CreateEditArticle>) => {
         try {
             const updatedThreads = articles.map(article =>
-                article.a_id === id ? { ...article, ...updates } : article
+                article.id === id ? { ...article, ...updates } : article
             );
 
             setArticles(updatedThreads);
@@ -66,7 +66,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
 
     const deleteArticle = async (id: number) => {
         try {
-            const updatedThreads = articles.filter(article => article.a_id !== id);
+            const updatedThreads = articles.filter(article => article.id !== id);
             setArticles(updatedThreads);
         } catch (error) {
             console.error('Error deleting thread:', error);
@@ -79,8 +79,8 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
 
         const searchLower = debounceSearch.toLowerCase();
         return articles.filter(article =>
-            article.a_title.toLowerCase().includes(searchLower) ||
-            article.a_slug.toLowerCase().includes(searchLower)
+            article.title.toLowerCase().includes(searchLower) ||
+            article.slug.toLowerCase().includes(searchLower)
         );
     }, [articles, debounceSearch]);
 

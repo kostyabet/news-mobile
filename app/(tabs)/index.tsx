@@ -127,7 +127,7 @@ export default function Newspaper() {
                         {articles.map((item) => {
                           return (
                               <View
-                                  key={item.a_id}
+                                  key={item.id}
                                   style={[
                                     styles.cardWrapper,
                                   ]}

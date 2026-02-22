@@ -56,7 +56,7 @@ export const ThreadModal = ({
 
         setIsLoading(true);
         try {
-            await onComplete({ a_title: title, a_content: content, a_slug: slug });
+            await onComplete({ title: title, content: content, slug: slug });
 
             if (mode === 'create') {
                 setTitle("");

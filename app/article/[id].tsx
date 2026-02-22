@@ -21,7 +21,7 @@ export default function ThreadDetailScreen() {
 
     const articleId = parseInt(params.id, 10);
     const [article, setArticle] = useState(() =>
-        articles.find(t => t.a_id === articleId)
+        articles.find(t => t.id === articleId)
     );
 
     const handleEditThread = async (article: CreateEditArticle) => {
@@ -62,7 +62,7 @@ export default function ThreadDetailScreen() {
     };
 
     useEffect(() => {
-        const currentThread = articles.find(a => a.a_id === articleId);
+        const currentThread = articles.find(a => a.id === articleId);
         setArticle(currentThread);
     }, [articles, articleId]);
 
@@ -92,11 +92,11 @@ export default function ThreadDetailScreen() {
 
                     <View style={styles.content}>
                         <Text style={[styles.title, { color: colors.textColor }]}>
-                            {article.a_title}
+                            {article.title}
                         </Text>
 
-                        <ThreadInfoBlock title={t('thread.info.slug')} content={article.a_slug} />
-                        <ThreadInfoBlock title={t('thread.info.content')} content={article.a_content} />
+                        <ThreadInfoBlock title={t('thread.info.slug')} content={article.slug} />
+                        <ThreadInfoBlock title={t('thread.info.content')} content={article.content} />
 
                         <CustomButton onClick={handleDelete} textColor={colors.deleteColor}>
                             {t('thread.info.delete')}
@@ -110,9 +110,9 @@ export default function ThreadDetailScreen() {
                 onClose={() => setIsModalOpen(false)}
                 mode={'edit'}
                 onComplete={handleEditThread}
-                initContent={article.a_content}
-                initTitle={article.a_title}
-                initSlug={article.a_slug}
+                initContent={article.content}
+                initTitle={article.title}
+                initSlug={article.slug}
             />
         </>
     );

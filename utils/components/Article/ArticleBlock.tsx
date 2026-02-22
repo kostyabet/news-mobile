@@ -21,7 +21,7 @@ export const ArticleCard = ({
   const handlePress = () => {
     router.push({
       pathname: '/article/[id]',
-      params: { id: article.a_id.toString() }
+      params: { id: article.id.toString() }
     });
   };
 
@@ -45,9 +45,9 @@ export const ArticleCard = ({
       onPress={handlePress}
     >
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.textColor }]}>{article.a_title}</Text>
+        <Text style={[styles.title, { color: colors.textColor }]}>{article.title}</Text>
         <Text style={[styles.description, { color: colors.textColor }]}>
-          {article.a_slug}
+          {article.slug}
         </Text>
       </View>
     </TouchableOpacity>

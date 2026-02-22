@@ -22,8 +22,8 @@ export const SearchItem = ({ article, onClick }: SearchItemProps) => {
       onPress={() => onClick()}
     >
       <View style={styles.content}>
-        <Text style={[ styles.header, { color: colors.textColor }]}>{article.a_title}</Text>
-        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{article.a_slug}</Text>
+        <Text style={[ styles.header, { color: colors.textColor }]}>{article.title}</Text>
+        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{article.slug}</Text>
       </View>
       <Text style={{ color: colors.textColor }}>{">"}</Text>
     </TouchableOpacity>
