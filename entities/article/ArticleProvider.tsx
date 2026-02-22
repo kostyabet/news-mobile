@@ -12,10 +12,8 @@ interface ArticleProviderProps {
 export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) => {
     const [articles, setArticles] = useState<Article[]>([]);
     const {
-        data: users,
         loading: isLoading,
         execute: fetchThreads,
-        error,
     } = useApi(getAllArticles, {
         onError: (error) => {
             Alert.alert('Ошибка загрузки', error.message);

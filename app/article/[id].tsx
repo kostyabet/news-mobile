@@ -9,20 +9,34 @@ import {useTranslation} from "react-i18next";
 import {ThreadInfoBlock} from "@/utils/components/Article/ThreadInfoBlock";
 import {Ionicons} from "@expo/vector-icons";
 import {ThreadModal} from "@/utils/components/Modal/ThreadModal";
-import {CreateEditArticle} from "@/entities/article/model";
+import {Article, CreateEditArticle} from "@/entities/article/model";
+import { useApi } from '@/entities/api/useApi';
+import { getArticle } from '@/entities/services/article';
 
 export default function ThreadDetailScreen() {
     const params = useLocalSearchParams<{ id: string }>();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { colors } = useTheme();
-    const { articles, updateArticle, deleteArticle } = useArticles();
+    const { updateArticle, deleteArticle } = useArticles();
     const { t } = useTranslation();
 
     const articleId = parseInt(params.id, 10);
-    const [article, setArticle] = useState(() =>
-        articles.find(t => t.id === articleId)
-    );
+    const [article, setArticle] = useState<Article | null>(null);
+
+    const {
+        execute: fetchThread,
+    } = useApi(getArticle, {
+        onError: (error) => {
+            Alert.alert('Ошибка загрузки', error.message);
+        },
+        onSuccess: (data: Article) => {
+            setArticle(data)
+        }
+    });
+    useEffect(() => {
+        fetchThread(articleId)
+    }, [articleId])
 
     const handleEditThread = async (article: CreateEditArticle) => {
         try {
@@ -60,11 +74,6 @@ export default function ThreadDetailScreen() {
             { cancelable: true }
         );
     };
-
-    useEffect(() => {
-        const currentThread = articles.find(a => a.id === articleId);
-        setArticle(currentThread);
-    }, [articles, articleId]);
 
     if (!article) {
         return (
