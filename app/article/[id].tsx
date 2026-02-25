@@ -59,8 +59,8 @@ export default function ThreadDetailScreen() {
 
     const handleDelete = () => {
         Alert.alert(
-            t('thread.delete.title'), // Заголовок
-            t('thread.delete.content'), // Сообщение
+            t('thread.delete.title'),
+            t('thread.delete.content'),
             [
                 {
                     text: t('thread.delete.cancel'),

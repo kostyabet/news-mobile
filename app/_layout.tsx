@@ -6,6 +6,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { ArticleProvider } from "@/entities/article/ArticleProvider";
 import { Stack } from "expo-router";
+import {NetworkProvider} from "@/entities/network/NetworkProvider";
+import NetworkStatusBanner from "@/utils/components/NetworkStatusBanner";
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -28,20 +30,23 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider>
-            <ArticleProvider>
-                <ThemedStatusBar />
-                <Stack>
-                    <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                    />
+            <NetworkProvider checkInterval={30000}>
+                <ArticleProvider>
+                    <NetworkStatusBanner />
+                    <ThemedStatusBar />
+                    <Stack>
+                        <Stack.Screen
+                            name="(tabs)"
+                            options={{ headerShown: false }}
+                        />
 
-                    <Stack.Screen
-                        name="article/[id]"
-                        options={{ headerShown: false }}
-                    />
-                </Stack>
-            </ArticleProvider>
+                        <Stack.Screen
+                            name="article/[id]"
+                            options={{ headerShown: false }}
+                        />
+                    </Stack>
+                </ArticleProvider>
+            </NetworkProvider>
         </ThemeProvider>
     );
 }

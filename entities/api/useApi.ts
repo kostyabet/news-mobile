@@ -1,4 +1,3 @@
-// src/hooks/useApi.ts
 import { useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { ApiError } from './types';
@@ -38,7 +37,7 @@ export function useApi<T, P extends any[] = any[]>(
 
       try {
         const result = await apiFunction(...params);
-        
+
         setState({
           data: result,
           loading: false,
@@ -50,7 +49,7 @@ export function useApi<T, P extends any[] = any[]>(
         return { success: true, data: result };
       } catch (error) {
         const apiError = error as ApiError;
-        
+
         setState({
           data: null,
           loading: false,
