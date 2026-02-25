@@ -28,7 +28,7 @@ export default function ThreadDetailScreen() {
         execute: fetchThread,
     } = useApi(getArticle, {
         onError: (error) => {
-            Alert.alert('Ошибка загрузки', error.message);
+            Alert.alert(t('thread.info.error'), error.message);
         },
         onSuccess: (data: Article) => {
             setArticle(data)
