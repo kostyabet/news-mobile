@@ -41,6 +41,7 @@ export default function ThreadDetailScreen() {
     const handleEditThread = async (article: CreateEditArticle) => {
         try {
             await updateArticle(articleId, article);
+            await fetchThread(articleId)
         } catch {
             console.error('Error updating article', article);
         }

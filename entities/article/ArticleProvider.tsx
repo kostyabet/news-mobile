@@ -2,21 +2,24 @@ import React, {useEffect, useMemo, useState} from "react";
 import {Article, CreateEditArticle} from "@/entities/article/model";
 import {ArticlesContext, ArticleContextType} from "@/entities/article/ArticleContext";
 import { useApi } from "../api/useApi";
-import { getAllArticles } from "../services/article";
+import {delArticle, getAllArticles, postArticle, putArticle} from "../services/article";
 import { Alert } from "react-native";
+import {useTranslation} from "react-i18next";
 
 interface ArticleProviderProps {
     children: React.ReactNode;
 }
 
 export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) => {
+    const { t } = useTranslation();
+
     const [articles, setArticles] = useState<Article[]>([]);
     const {
         loading: isLoading,
         execute: fetchThreads,
     } = useApi(getAllArticles, {
         onError: (error) => {
-            Alert.alert('Ошибка загрузки', error.message);
+            Alert.alert(t('thread.info.error'), error.message);
         },
         onSuccess: (data: Article[]) => {
             setArticles(data)
@@ -26,6 +29,30 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     useEffect(() => {
         fetchThreads();
     }, []);
+
+    const {
+        execute: createArticle,
+    } = useApi(postArticle, {
+        onError: (error) => {
+            Alert.alert(t('thread.create.error'), error.message);
+        },
+    })
+
+    const {
+        execute: updateArticle,
+    } = useApi(putArticle, {
+        onError: (error) => {
+            Alert.alert(t('thread.edit.error'), error.message);
+        },
+    })
+
+    const {
+        execute: removeArticle,
+    } = useApi(delArticle, {
+        onError: (error) => {
+            Alert.alert(t('thread.delete.error'), error.message);
+        },
+    })
     
     const [debounceSearch, setDebounceSearch] = useState<string>("");
 
@@ -43,19 +70,21 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
 
             const updatedThreads = [...articles, newArticle];
             setArticles(updatedThreads);
+            await createArticle(threadData)
         } catch (error) {
             console.error('Error adding thread:', error);
             throw error;
         }
     };
 
-    const updateArticle = async (id: number, updates: Partial<CreateEditArticle>) => {
+    const editArticle = async (id: number, updates: CreateEditArticle) => {
         try {
             const updatedThreads = articles.map(article =>
                 article.id === id ? { ...article, ...updates } : article
             );
 
             setArticles(updatedThreads);
+            await updateArticle(id, updates)
         } catch (error) {
             console.error('Error updating thread:', error);
             throw error;
@@ -66,6 +95,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
         try {
             const updatedThreads = articles.filter(article => article.id !== id);
             setArticles(updatedThreads);
+            await removeArticle(id);
         } catch (error) {
             console.error('Error deleting thread:', error);
             throw error;
@@ -85,7 +115,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     const contextValue: ArticleContextType = {
         articles: filterThreads,
         addArticle,
-        updateArticle,
+        updateArticle: editArticle,
         deleteArticle,
         handleSetSearch,
         isLoading,

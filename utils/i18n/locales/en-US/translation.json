@@ -62,7 +62,8 @@
       "slug": "Slug",
       "createAt": "Last activity",
       "back": "Back",
-      "delete": "Delete"
+      "delete": "Delete",
+      "error": "Error of load data"
     },
     "create": {
       "title": "Create new article",
@@ -73,7 +74,8 @@
       "apply": "Create",
       "cancel": "Cancel",
       "slug": "Slug",
-      "slugPlaceholder": "Short description of choosen theme"
+      "slugPlaceholder": "Short description of choosen theme",
+      "error": "Create new article error"
     },
     "edit": {
       "title": "Edit article",
@@ -84,13 +86,15 @@
       "apply": "Apply",
       "cancel": "Cancel",
       "slug": "Slug",
-      "slugPlaceholder": "Short description of choosen theme"
+      "slugPlaceholder": "Short description of choosen theme",
+      "error": "Error update article"
     },
     "delete": {
       "title": "Are you sure you want to delete the record?",
       "description": "The data will be permanently deleted beyond recovery.",
       "delete": "Delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "error": "Error delete article"
     }
   }
 }

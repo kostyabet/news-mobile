@@ -6,3 +6,6 @@ export interface Article {
 }
 
 export type CreateEditArticle = Omit<Article, 'id'>
+
+export type CreateArticle = CreateEditArticle
+export type UpdateArticle = CreateEditArticle
