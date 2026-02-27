@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import {useNetwork} from "@/entities/network/useNetwork";
-import {getNetworkStatusText} from "@/utils/network/utils";
+import {useTranslation} from "react-i18next";
 
 interface NetworkStatusBannerProps {
     showDetails?: boolean;
@@ -15,16 +15,24 @@ const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
                                                                      zIndex = 1000
                                                                  }) => {
     const { isConnected, isInternetReachable, connectionType, lastChecked } = useNetwork();
+    const { t } = useTranslation();
 
     const getPositionStyle = () => {
         return position === 'top' ? styles.topPosition : styles.bottomPosition;
+    };
+
+    const getNetworkStatusText = (type: string | null, isReachable: boolean | null): string => {
+        if (!type) return t('network.checking');
+        if (type === 'none' || type === 'unknown') return t('network.no-connection');
+        if (isReachable === false) return t('network.unreachable');
+        return `✓ ${t('network.type')} ${type}`;
     };
 
     if (isConnected === null) {
         return (
             <View style={[styles.banner, styles.checking, styles.absolute, getPositionStyle(), { zIndex }]}>
                 <ActivityIndicator size="small" color="#666" />
-                <Text style={styles.checkingText}>Checking connection...</Text>
+                <Text style={styles.checkingText}>{t('network.check')}</Text>
             </View>
         );
     }
@@ -34,10 +42,10 @@ const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
 
         return (
             <View style={[styles.banner, styles.online, styles.absolute, getPositionStyle(), { zIndex }]}>
-                <Text style={styles.onlineText}>✓ Online via {connectionType}</Text>
+                <Text style={styles.onlineText}>✓ {t('network.type')} {connectionType}</Text>
                 {lastChecked && (
                     <Text style={styles.lastChecked}>
-                        Last checked: {lastChecked.toLocaleTimeString()}
+                        {t('network.last')}: {lastChecked.toLocaleTimeString()}
                     </Text>
                 )}
             </View>
@@ -50,7 +58,7 @@ const NetworkStatusBanner: React.FC<NetworkStatusBannerProps> = ({
                 {getNetworkStatusText(connectionType, isInternetReachable)}
             </Text>
             {isConnected && isInternetReachable === false && (
-                <Text style={styles.wifiText}>Connected to WiFi but no internet access</Text>
+                <Text style={styles.wifiText}>{t('network.without-access')}</Text>
             )}
         </View>
     );

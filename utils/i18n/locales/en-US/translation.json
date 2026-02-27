@@ -96,5 +96,14 @@
       "cancel": "Cancel",
       "error": "Error delete article"
     }
+  },
+  "network": {
+    "check": "Checking connection...",
+    "type": "Online via",
+    "last": "Last checked",
+    "without-access": "Connected to WiFi but no internet access",
+    "checking": "Checking...",
+    "no-connection": "No connection",
+    "unreachable": "Connected but no internet"
   }
 }
