@@ -1,4 +1,3 @@
-// Общий формат ответа от сервера (если у тебя стандартизированный ответ)
 export interface ApiResponse<T = any> {
   data: T;
   message?: string;
@@ -6,7 +5,6 @@ export interface ApiResponse<T = any> {
   timestamp?: string;
 }
 
-// Тип для пагинации
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -15,7 +13,6 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-// Тип для параметров запроса
 export interface QueryParams {
   page?: number;
   limit?: number;
@@ -25,7 +22,6 @@ export interface QueryParams {
   [key: string]: any;
 }
 
-// Типы для пользователя (пример)
 export interface User {
   id: number;
   name: string;
@@ -35,19 +31,17 @@ export interface User {
   updatedAt: string;
 }
 
-// Тип для создания пользователя
 export interface CreateUserDto {
   name: string;
   email: string;
   password?: string;
 }
 
-// Тип для обновления пользователя
 export interface UpdateUserDto extends Partial<CreateUserDto> {}
 
-// Типы для ошибок API
 export interface ApiError {
   message: string;
   statusCode: number;
   errors?: Record<string, string[]>;
+  isNetworkError?: boolean;
 }
