@@ -9,23 +9,27 @@ export default function RootLayout() {
   const { t } = useTranslation();
 
   return (
-      <NativeTabs
-          minimizeBehavior="onScrollDown"
-          labelStyle={styles.navLabel}
-          tintColor={colors.linkColor}
-      >
-        <NativeTabs.Trigger name="index">
-          <Icon sf="newspaper.fill" drawable="custom_android_drawable" />
-          <Label>{t("home.tab")}</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="settings">
-          <Icon sf="gear" drawable="custom_settings_drawable" />
-          <Label>{t("settings.tab")}</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="search" role="search">
-          <Icon sf="magnifyingglass" drawable="custom_search_drawable" />
-        </NativeTabs.Trigger>
-      </NativeTabs>
+    <NativeTabs
+      minimizeBehavior="onScrollDown"
+      labelStyle={styles.navLabel}
+      tintColor={colors.linkColor}
+    >
+      <NativeTabs.Trigger name="index">
+        <Icon sf="newspaper.fill" drawable="custom_android_drawable" />
+        <Label>{t("home.tab")}</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="settings">
+        <Icon sf="gear" drawable="custom_settings_drawable" />
+        <Label>{t("settings.tab")}</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <Icon sf="person.fill" drawable="custom_settings_drawable" />
+        <Label>{t("profile.tab")}</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="search" role="search">
+        <Icon sf="magnifyingglass" drawable="custom_search_drawable" />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
 

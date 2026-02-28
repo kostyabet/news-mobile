@@ -2,29 +2,36 @@ import axios, {
   AxiosInstance,
   AxiosError,
   InternalAxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ApiError } from './types';
+} from "axios";
+import { Platform } from "react-native";
+import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ApiError } from "./types";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  saveTokens,
+} from "@/entities/services/keychain";
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-const CACHE_PREFIX = '@api_cache_';
+const CACHE_PREFIX = "@api_cache_";
 
 class AxiosClient {
-  private instance: AxiosInstance;
+  private readonly instance: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
 
   constructor() {
     this.instance = axios.create({
       baseURL: this.getBaseUrl(),
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
     });
 
@@ -35,51 +42,16 @@ class AxiosClient {
     const apiUrlFromConfig = Constants.expoConfig?.extra?.apiUrl;
 
     if (__DEV__) {
-      if (apiUrlFromConfig && apiUrlFromConfig !== 'DEV') {
+      if (apiUrlFromConfig && apiUrlFromConfig !== "DEV") {
         return apiUrlFromConfig;
       }
-      if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:3100';
-      } else if (Platform.OS === 'ios') {
-        return 'http://localhost:3100';
+      if (Platform.OS === "android") {
+        return "http://10.0.2.2:3100";
+      } else if (Platform.OS === "ios") {
+        return "http://localhost:3100";
       }
     }
-    return apiUrlFromConfig || 'https://api.yourapp.com';
-  }
-
-  private setupInterceptors(): void {
-    // Логирование исходящих запросов
-    this.instance.interceptors.request.use(
-        (config: CustomAxiosRequestConfig) => {
-          if (__DEV__) {
-            const bodyOrParams = config.data || config.params;
-            console.log(
-                `🚀 [REQUEST] ${config.method?.toUpperCase()} ${config.url}`,
-                bodyOrParams ? bodyOrParams : ''
-            );
-          }
-          return config;
-        },
-        (error: AxiosError) => Promise.reject(this.normalizeError(error))
-    );
-
-    // Логирование входящих ответов
-    this.instance.interceptors.response.use(
-        (response: AxiosResponse) => {
-          if (__DEV__) {
-            console.log(`✅ [RESPONSE] ${response.config.method?.toUpperCase()} ${response.config.url} (${response.status})`);
-          }
-          return response;
-        },
-        async (error: AxiosError) => {
-          if (__DEV__) {
-            console.log(
-                `❌ [ERROR] ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.message} (${error.response?.status || 'No Status'})`
-            );
-          }
-          return Promise.reject(this.normalizeError(error));
-        }
-    );
+    return apiUrlFromConfig || "https://api.yourapp.com";
   }
 
   private normalizeError(error: any): ApiError {
@@ -88,8 +60,8 @@ class AxiosClient {
 
       return {
         message: isNetworkError
-            ? 'Отсутствует подключение к интернету'
-            : error.response?.data?.message || error.message,
+          ? "Отсутствует подключение к интернету"
+          : error.response?.data?.message || error.message,
         statusCode: error.response?.status || (isNetworkError ? 0 : 500),
         errors: error.response?.data?.errors,
         isNetworkError,
@@ -97,34 +69,122 @@ class AxiosClient {
     }
 
     return {
-      message: error?.message || 'Произошла неизвестная ошибка',
+      message: error?.message || "Произошла неизвестная ошибка",
       statusCode: 500,
     };
   }
 
-// --- ЛОГИКА КЭШИРОВАНИЯ ---
+  private setupInterceptors(): void {
+    this.instance.interceptors.request.use(
+      async (config: CustomAxiosRequestConfig) => {
+        const token = await getAccessToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
 
-  private getCacheKey(url: string, params?: any): string {
-    return `${CACHE_PREFIX}${url}${params ? JSON.stringify(params) : ''}`;
+        if (__DEV__) {
+          console.log(
+            `🚀 [REQUEST] ${config.method?.toUpperCase()} ${config.url}`,
+          );
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
+
+    this.instance.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const originalRequest = error.config as CustomAxiosRequestConfig;
+
+        // Если ошибка 401 и мы еще не пробовали переповторить (retry)
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          // Если это запрос на логин или рефреш сам по себе упал - не зацикливаемся
+          if (
+            originalRequest.url?.includes("login") ||
+            originalRequest.url?.includes("refresh")
+          ) {
+            return Promise.reject(this.normalizeError(error));
+          }
+
+          if (this.isRefreshing) {
+            // Если процесс обновления уже идет, ждем его завершения
+            return new Promise((resolve) => {
+              this.refreshSubscribers.push((token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(this.instance(originalRequest));
+              });
+            });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const refreshToken = await getRefreshToken();
+
+            const response = await axios.post(
+              `${this.getBaseUrl()}/users/refresh`,
+              {
+                refreshToken,
+              },
+            );
+
+            const { accessToken, refreshToken: newRefresh } = response.data;
+
+            await saveTokens(accessToken, newRefresh);
+
+            this.isRefreshing = false;
+            this.onTokenRefreshed(accessToken);
+
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return this.instance(originalRequest);
+          } catch (refreshError) {
+            this.isRefreshing = false;
+            await clearTokens();
+
+            if (__DEV__) console.log("❌ [AUTH] Refresh token expired");
+
+            return Promise.reject(this.normalizeError(refreshError));
+          }
+        }
+
+        return Promise.reject(this.normalizeError(error));
+      },
+    );
   }
 
-  // Настройка времени жизни кэша (например, 5 минут = 5 * 60 * 1000 мс)
+  private onTokenRefreshed(token: string) {
+    this.refreshSubscribers.map((cb) => cb(token));
+    this.refreshSubscribers = [];
+  }
+
+  // --- ЛОГИКА КЭШИРОВАНИЯ ---
+
+  private getCacheKey(url: string, params?: any): string {
+    return `${CACHE_PREFIX}${url}${params ? JSON.stringify(params) : ""}`;
+  }
+
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
 
   private async clearCacheForUrl(url: string) {
     try {
-      const baseUrl = url.split('/')[1];
+      const baseUrl = url.split("/")[1];
       const keys = await AsyncStorage.getAllKeys();
-      const cacheKeys = keys.filter(key => key.includes(`${CACHE_PREFIX}/${baseUrl}`));
+      const cacheKeys = keys.filter((key) =>
+        key.includes(`${CACHE_PREFIX}/${baseUrl}`),
+      );
 
       if (cacheKeys.length > 0) {
         await AsyncStorage.multiRemove(cacheKeys);
         if (__DEV__) {
-          console.log(`🗑️[CACHE CLEARED] Удален кэш для эндпоинта: /${baseUrl} (${cacheKeys.length} ключей)`);
+          console.log(
+            `🗑️[CACHE CLEARED] Удален кэш для эндпоинта: /${baseUrl} (${cacheKeys.length} ключей)`,
+          );
         }
       }
     } catch (e) {
-      if (__DEV__) console.error('❌ [CACHE ERROR] Ошибка очистки кэша', e);
+      if (__DEV__) console.error("❌ [CACHE ERROR] Ошибка очистки кэша", e);
     }
   }
 
@@ -141,18 +201,22 @@ class AxiosClient {
         // Если кэш есть и он еще "свежий" (не прошло 5 минут) - отдаем его и НЕ делаем запрос к сети
         if (isFresh) {
           if (__DEV__) {
-            console.log(`📦 [DATA SOURCE] Данные для ${url} загружены из КЭША (без запроса к сети).`);
+            console.log(
+              `📦 [DATA SOURCE] Данные для ${url} загружены из КЭША (без запроса к сети).`,
+            );
           }
           return parsedCache.data as T;
         } else {
-          if (__DEV__) console.log(`🔄 [CACHE EXPIRED] Кэш для ${url} протух. Делаем новый запрос...`);
+          if (__DEV__)
+            console.log(
+              `🔄 [CACHE EXPIRED] Кэш для ${url} протух. Делаем новый запрос...`,
+            );
         }
       }
     } catch (e) {
-      if (__DEV__) console.error('❌ [CACHE ERROR] Ошибка чтения кэша', e);
+      if (__DEV__) console.error("❌ [CACHE ERROR] Ошибка чтения кэша", e);
     }
 
-    // 2. ЕСЛИ КЭША НЕТ ИЛИ ОН ПРОТУХ - ИДЕМ В СЕТЬ
     try {
       const response = await this.instance.get<T>(url, { params });
 
@@ -160,26 +224,28 @@ class AxiosClient {
         console.log(`🌐 [DATA SOURCE] Данные для ${url} загружены из СЕТИ.`);
       }
 
-      // Сохраняем в кэш ответ + текущее время
       const cacheDataToSave = {
         timestamp: Date.now(),
         data: response.data,
       };
 
       AsyncStorage.setItem(cacheKey, JSON.stringify(cacheDataToSave))
-          .then(() => {
-            if (__DEV__) console.log(`💾[CACHE SAVED] Данные для ${url} обновлены в кэше.`);
-          })
-          .catch(e => {
-            if (__DEV__) console.error('❌ [CACHE ERROR] Ошибка сохранения кэша', e);
-          });
+        .then(() => {
+          if (__DEV__)
+            console.log(`💾[CACHE SAVED] Данные для ${url} обновлены в кэше.`);
+        })
+        .catch((e) => {
+          if (__DEV__)
+            console.error("❌ [CACHE ERROR] Ошибка сохранения кэша", e);
+        });
 
       return response.data;
     } catch (error: any) {
-      // 3. ЕСЛИ ПРОПАЛ ИНТЕРНЕТ (даже если кэш протух, лучше отдать старый кэш, чем ничего)
       if (error.isNetworkError) {
         if (__DEV__) {
-          console.log(`⚠️[NETWORK OFFLINE] Нет сети. Пытаемся достать любой кэш для: ${url}`);
+          console.log(
+            `⚠️[NETWORK OFFLINE] Нет сети. Пытаемся достать любой кэш для: ${url}`,
+          );
         }
 
         try {
@@ -187,12 +253,15 @@ class AxiosClient {
           if (cachedItem) {
             const parsedCache = JSON.parse(cachedItem);
             if (__DEV__) {
-              console.log(`📦 [DATA SOURCE] Данные для ${url} загружены из СТАРОГО КЭША.`);
+              console.log(
+                `📦 [DATA SOURCE] Данные для ${url} загружены из СТАРОГО КЭША.`,
+              );
             }
             return parsedCache.data as T;
           }
         } catch (cacheError) {
-          if (__DEV__) console.error('❌ [CACHE ERROR] Ошибка чтения кэша', cacheError);
+          if (__DEV__)
+            console.error("❌ [CACHE ERROR] Ошибка чтения кэша", cacheError);
         }
       }
 

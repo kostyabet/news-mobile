@@ -97,6 +97,34 @@
       "error": "Error delete article"
     }
   },
+  "auth": {
+    "restrict": {
+      "login": "Login should have at least 4 symbols",
+      "pass": "Password should have at least 8 symbols"
+    },
+    "signIn": {
+      "header": "Sign In",
+      "description": "Sign in your account, for continue",
+      "login": "Login",
+      "password": "Password",
+      "submit": "Sign In",
+      "no-acc": "Don't have an account? ",
+      "reg": "Sign Up"
+    },
+    "signUp": {
+      "header": "Sign Up",
+      "description": "Create new account",
+      "login": "Login",
+      "password": "Password",
+      "role": "Choose role",
+      "submit": "Sign Up",
+      "has-acc": "Already have account? ",
+      "in": "Sign In"
+    }
+  },
+  "profile": {
+    "tab": "Profile"
+  },
   "network": {
     "check": "Checking connection...",
     "type": "Online via",

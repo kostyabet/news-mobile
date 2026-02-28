@@ -1,4 +1,4 @@
-import {CustomLayout, PageHeader, ArticleCard} from "@/utils/components";
+import { CustomLayout, PageHeader, ArticleCard } from "@/utils/components";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useState } from "react";
@@ -39,7 +39,7 @@ export default function Search() {
           {articles && articles.length > 0 ? (
             <View style={styles.searchItems}>
               {articles.map((item) => (
-                <ArticleCard key={item.id} article={item} isSearch/>
+                <ArticleCard key={item.id} article={item} isSearch />
               ))}
             </View>
           ) : (

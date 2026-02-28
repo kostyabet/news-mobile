@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTheme } from "@/utils/theme/useTheme";
-import {SearchItem} from "@/utils/components/Search/SearchItem";
-import {Article} from "@/entities/article/model";
-import {router} from "expo-router";
+import { SearchItem } from "@/utils/components/Search/SearchItem";
+import { Article } from "@/entities/article/model";
+import { router } from "expo-router";
 
 interface ArticleCardProps {
   article: Article;
@@ -20,17 +20,12 @@ export const ArticleCard = ({
 
   const handlePress = () => {
     router.push({
-      pathname: '/article/[id]',
-      params: { id: article.id.toString() }
+      pathname: "/article/[id]",
+      params: { id: article.id.toString() },
     });
   };
 
-  if (isSearch) return (
-    <SearchItem
-      onClick={handlePress}
-      article={article}
-    />
-  )
+  if (isSearch) return <SearchItem onClick={handlePress} article={article} />;
 
   return (
     <TouchableOpacity
@@ -45,7 +40,9 @@ export const ArticleCard = ({
       onPress={handlePress}
     >
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.textColor }]}>{article.title}</Text>
+        <Text style={[styles.title, { color: colors.textColor }]}>
+          {article.title}
+        </Text>
         <Text style={[styles.description, { color: colors.textColor }]}>
           {article.slug}
         </Text>
@@ -56,7 +53,7 @@ export const ArticleCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
     maxHeight: 120,
     borderRadius: 12,
     padding: 10,

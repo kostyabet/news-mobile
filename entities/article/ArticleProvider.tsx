@@ -3,7 +3,6 @@ import {Article, CreateEditArticle} from "@/entities/article/model";
 import {ArticlesContext, ArticleContextType} from "@/entities/article/ArticleContext";
 import { useApi } from "../api/useApi";
 import {delArticle, getAllArticles, postArticle, putArticle} from "../services/article";
-import { Alert } from "react-native";
 import {useTranslation} from "react-i18next";
 
 interface ArticleProviderProps {
@@ -18,9 +17,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
         loading: isLoading,
         execute: fetchThreads,
     } = useApi(getAllArticles, {
-        onError: (error) => {
-            Alert.alert(t('thread.info.error'), error.message);
-        },
         onSuccess: (data: Article[]) => {
             setArticles(data)
         }
@@ -33,25 +29,16 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     const {
         execute: createArticle,
     } = useApi(postArticle, {
-        onError: (error) => {
-            Alert.alert(t('thread.create.error'), error.message);
-        },
     })
 
     const {
         execute: updateArticle,
     } = useApi(putArticle, {
-        onError: (error) => {
-            Alert.alert(t('thread.edit.error'), error.message);
-        },
     })
 
     const {
         execute: removeArticle,
     } = useApi(delArticle, {
-        onError: (error) => {
-            Alert.alert(t('thread.delete.error'), error.message);
-        },
     })
     
     const [debounceSearch, setDebounceSearch] = useState<string>("");

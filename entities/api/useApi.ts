@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
-import { ApiError } from './types';
+import { useState, useCallback } from "react";
+import { Alert } from "react-native";
+import { ApiError } from "./types";
 
 interface UseApiState<T> {
   data: T | null;
@@ -12,7 +12,9 @@ interface UseApiReturn<T, P extends any[]> {
   data: T | null;
   loading: boolean;
   error: ApiError | null;
-  execute: (...params: P) => Promise<{ success: boolean; data?: T; error?: ApiError }>;
+  execute: (
+    ...params: P
+  ) => Promise<{ success: boolean; data?: T; error?: ApiError }>;
   reset: () => void;
 }
 
@@ -23,7 +25,7 @@ export function useApi<T, P extends any[] = any[]>(
     onError?: (error: ApiError) => void;
     showErrorAlert?: boolean;
     initialData?: T | null;
-  }
+  },
 ): UseApiReturn<T, P> {
   const [state, setState] = useState<UseApiState<T>>({
     data: options?.initialData ?? null,
@@ -33,7 +35,7 @@ export function useApi<T, P extends any[] = any[]>(
 
   const execute = useCallback(
     async (...params: P) => {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
         const result = await apiFunction(...params);
@@ -56,16 +58,12 @@ export function useApi<T, P extends any[] = any[]>(
           error: apiError,
         });
 
-        if (options?.showErrorAlert !== false) {
-          Alert.alert('Ошибка', apiError.message || 'Произошла ошибка');
-        }
-
         options?.onError?.(apiError);
 
         return { success: false, error: apiError };
       }
     },
-    [apiFunction, options]
+    [apiFunction, options],
   );
 
   const reset = useCallback(() => {
