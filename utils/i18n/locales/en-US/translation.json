@@ -91,7 +91,7 @@
     },
     "delete": {
       "title": "Are you sure you want to delete the record?",
-      "description": "The data will be permanently deleted beyond recovery.",
+      "content": "The data will be permanently deleted beyond recovery.",
       "delete": "Delete",
       "cancel": "Cancel",
       "error": "Error delete article"
