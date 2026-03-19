@@ -5,6 +5,10 @@ export const getAllArticles = async () => {
   return axiosClient.get("/articles");
 };
 
+export const getMyArticles = async () => {
+  return axiosClient.get("/articles/my");
+};
+
 export const getArticle = async (id: number) => {
   return axiosClient.get(`/articles/${id}`);
 };

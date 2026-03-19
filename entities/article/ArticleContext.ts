@@ -11,6 +11,7 @@ export interface ArticleContextType {
   isLoading: boolean;
   filters: SearchFilters;
   setFilters: (filters: SearchFilters) => void;
+  refreshArticles: () => Promise<void>;
 }
 
 export const ArticlesContext = createContext<ArticleContextType | undefined>(

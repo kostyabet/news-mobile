@@ -89,7 +89,10 @@
       "createAt": "Время последней активности",
       "back": "Назад",
       "delete": "Удалить",
-      "error": "Ошибка загрузки"
+      "error": "Ошибка загрузки",
+      "author": "Автор",
+      "share": "Поделиться",
+      "shareTelegram": "Telegram"
     },
     "create": {
       "title": "Создание новой статьи",
@@ -151,7 +154,30 @@
     }
   },
   "profile": {
-    "tab": "Профиль"
+    "tab": "Профиль",
+    "title": "Профиль",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "info": "Личные данные",
+    "email": "Email",
+    "save": "Сохранить",
+    "logout": "Выйти",
+    "delete": "Удалить",
+    "deleteConfirmTitle": "Удалить аккаунт?",
+    "deleteConfirmMessage": "Ваш аккаунт и все данные будут удалены безвозвратно.",
+    "deleteConfirmButton": "Удалить",
+    "cancel": "Отмена",
+    "edit": "Редактировать",
+    "addPhoto": "Добавить фото",
+    "changePhoto": "Изменить фото",
+    "photoFromGallery": "Выбрать из галереи",
+    "photoFromCamera": "Сделать фото",
+    "articles": "Статьи",
+    "noArticles": "Статей пока нет",
+    "notAuthor": "Этот пользователь не является автором",
+    "saveSuccess": "Профиль обновлён",
+    "saveError": "Ошибка обновления профиля",
+    "deleteError": "Ошибка удаления аккаунта"
   },
   "network": {
     "check": "Проверка соединения...",

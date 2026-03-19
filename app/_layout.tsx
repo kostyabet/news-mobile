@@ -10,6 +10,7 @@ import { NetworkProvider } from "@/entities/network/NetworkProvider";
 import NetworkStatusBanner from "@/utils/components/NetworkStatusBanner";
 import { AuthProvider } from "@/entities/auth/AuthProvider";
 import { useAuth } from "@/entities/auth/useAuth";
+import { UserProvider } from "@/entities/user/UserProvider";
 import Toast from "react-native-toast-message";
 
 const InitLayout = () => {
@@ -55,6 +56,7 @@ const InitLayout = () => {
       <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
 
       <Stack.Screen name="article/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 };
@@ -63,15 +65,17 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <NetworkProvider checkInterval={30000}>
-        <ArticleProvider>
-          <AuthProvider>
-            <NetworkStatusBanner />
-            <ThemedStatusBar />
-            <Toast />
+        <AuthProvider>
+          <UserProvider>
+            <ArticleProvider>
+              <NetworkStatusBanner />
+              <ThemedStatusBar />
+              <Toast />
 
-            <InitLayout />
-          </AuthProvider>
-        </ArticleProvider>
+              <InitLayout />
+            </ArticleProvider>
+          </UserProvider>
+        </AuthProvider>
       </NetworkProvider>
     </ThemeProvider>
   );

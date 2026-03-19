@@ -23,17 +23,26 @@ import { useDebounce } from "@/utils/debounce";
 import { NotFound } from "@/utils/components/Search/NotFound";
 import { useArticles } from "@/entities/article/useArticles";
 import { ThreadModal } from "@/utils/components/Modal/ThreadModal";
-import { CreateEditArticle } from "@/entities/article/model";
+import { CreateEditArticle, Article } from "@/entities/article/model";
 import { Filter } from "@/utils/icons/Filter";
 import { FilterModal } from "@/utils/components/Search/FilterModal";
 import { DEFAULT_FILTERS } from "@/utils/search/types";
 
 const SEARCH_BAR_HEIGHT = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
+const GRID_GAP = 10;
+const HORIZONTAL_PADDING = 16;
+const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GRID_GAP) / 2;
 
 export default function Newspaper() {
-  const { articles, isLoading, handleSetSearch, addArticle, filters, setFilters } = useArticles();
+  const {
+    articles,
+    isLoading,
+    handleSetSearch,
+    addArticle,
+    filters,
+    setFilters,
+  } = useArticles();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpenCreate, setIsOpenCreate] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
@@ -85,7 +94,6 @@ export default function Newspaper() {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
-
     if (y < -45 && !isSearchVisible) {
       showSearch();
     }
@@ -101,6 +109,63 @@ export default function Newspaper() {
       outputRange: [0, 0, 1],
     }),
     overflow: "hidden" as const,
+  };
+
+  const renderArticles = (items: Article[]) => {
+    if (items.length === 0) {
+      return <NotFound text={t("search.notFound")} />;
+    }
+
+    const elements: React.ReactNode[] = [];
+    let i = 0;
+
+    // First article — hero
+    if (items.length > 0) {
+      elements.push(
+        <ArticleCard key={items[0].id} article={items[0]} variant="hero" />,
+      );
+      i = 1;
+    }
+
+    while (i < items.length) {
+      // Next 2 articles — horizontal
+      const horizontalBatch: Article[] = [];
+      for (let j = 0; j < 2 && i < items.length; j++, i++) {
+        horizontalBatch.push(items[i]);
+      }
+      if (horizontalBatch.length > 0) {
+        elements.push(
+          <View key={`h-${horizontalBatch[0].id}`} style={styles.horizontalGroup}>
+            {horizontalBatch.map((item) => (
+              <ArticleCard
+                key={item.id}
+                article={item}
+                variant="horizontal"
+              />
+            ))}
+          </View>,
+        );
+      }
+
+      // Next 4 articles — compact grid (2x2)
+      const gridBatch: Article[] = [];
+      for (let j = 0; j < 4 && i < items.length; j++, i++) {
+        gridBatch.push(items[i]);
+      }
+      if (gridBatch.length > 0) {
+        elements.push(
+          <View key={`g-${gridBatch[0].id}`} style={styles.gridGroup}>
+            {gridBatch.map((item) => (
+              <View key={item.id} style={styles.gridCard}>
+                <ArticleCard article={item} variant="compact" />
+              </View>
+            ))}
+          </View>,
+        );
+      }
+    }
+
+    return elements;
   };
 
   return (
@@ -146,32 +211,16 @@ export default function Newspaper() {
             <CustomButton onClick={() => setIsOpenCreate(true)}>+</CustomButton>
           </View>
 
-          <View style={styles.cardsContainer}>
+          <View style={styles.feed}>
             {!isLoading ? (
-              <>
-                {articles && articles.length > 0 ? (
-                  <View style={styles.gridContainer}>
-                    {articles.map((item) => {
-                      return (
-                        <View key={item.id} style={[styles.cardWrapper]}>
-                          <ArticleCard article={item} />
-                        </View>
-                      );
-                    })}
-                  </View>
-                ) : (
-                  <NotFound text={t("search.notFound")} />
-                )}
-              </>
+              renderArticles(articles || [])
             ) : (
-              <View style={styles.gridContainer}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((_, index) => {
-                  return (
-                    <View key={index} style={styles.cardWrapper}>
-                      <ArticleBlockSkeleton />
-                    </View>
-                  );
-                })}
+              <View style={styles.skeletonGrid}>
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <View key={index} style={styles.gridCard}>
+                    <ArticleBlockSkeleton />
+                  </View>
+                ))}
               </View>
             )}
           </View>
@@ -197,27 +246,9 @@ export default function Newspaper() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-  },
-  cardsContainer: {
-    paddingBottom: 20,
-  },
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    columnGap: 10,
-    rowGap: 5,
-  },
-  cardWrapper: {
-    width: CARD_WIDTH,
-    paddingBottom: 5,
-  },
-  squareCard: {
-    width: "100%",
-    aspectRatio: 1,
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
   containerHeader: {
-    display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
@@ -244,5 +275,27 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+
+  // Feed layout
+  feed: {
+    gap: 12,
+    paddingBottom: 24,
+  },
+  horizontalGroup: {
+    gap: 10,
+  },
+  gridGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: GRID_GAP,
+  },
+  gridCard: {
+    width: CARD_WIDTH,
+  },
+  skeletonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: GRID_GAP,
   },
 });

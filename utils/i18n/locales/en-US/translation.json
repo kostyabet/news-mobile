@@ -89,7 +89,10 @@
       "createAt": "Last activity",
       "back": "Back",
       "delete": "Delete",
-      "error": "Error of load data"
+      "error": "Error of load data",
+      "author": "Author",
+      "share": "Share",
+      "shareTelegram": "Telegram"
     },
     "create": {
       "title": "Create new article",
@@ -151,7 +154,30 @@
     }
   },
   "profile": {
-    "tab": "Profile"
+    "tab": "Profile",
+    "title": "Profile",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "info": "Personal info",
+    "email": "Email",
+    "save": "Save",
+    "logout": "Logout",
+    "delete": "Delete",
+    "deleteConfirmTitle": "Delete account?",
+    "deleteConfirmMessage": "Your account and all data will be permanently deleted.",
+    "deleteConfirmButton": "Delete",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "addPhoto": "Add photo",
+    "changePhoto": "Change photo",
+    "photoFromGallery": "Choose from gallery",
+    "photoFromCamera": "Take a photo",
+    "articles": "Articles",
+    "noArticles": "No articles yet",
+    "notAuthor": "This user is not an author",
+    "saveSuccess": "Profile updated",
+    "saveError": "Failed to update profile",
+    "deleteError": "Failed to delete account"
   },
   "network": {
     "check": "Checking connection...",

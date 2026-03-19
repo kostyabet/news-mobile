@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as TokenService from './../services/keychain';
-import api from '../api/api';
+import axiosClient from '../api/api';
 import { AuthContext } from "./AuthContext";
 import {postSignIn, postUser} from "@/entities/services/auth";
 
@@ -22,6 +22,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         };
         loadStorageData();
+    }, []);
+
+    // Force logout when refresh token expires
+    useEffect(() => {
+        axiosClient.onSessionExpired(() => {
+            setIsLoggedIn(false);
+        });
     }, []);
 
     const signIn = async (login: string, pass: string) => {

@@ -24,6 +24,11 @@ class AxiosClient {
   private readonly instance: AxiosInstance;
   private isRefreshing = false;
   private refreshSubscribers: ((token: string) => void)[] = [];
+  private sessionExpiredCallback: (() => void) | null = null;
+
+  public onSessionExpired(callback: () => void) {
+    this.sessionExpiredCallback = callback;
+  }
 
   constructor() {
     this.instance = axios.create({
@@ -145,6 +150,8 @@ class AxiosClient {
 
             if (__DEV__) console.log("❌ [AUTH] Refresh token expired");
 
+            this.sessionExpiredCallback?.();
+
             return Promise.reject(this.normalizeError(refreshError));
           }
         }
@@ -191,78 +198,34 @@ class AxiosClient {
   public async get<T = any>(url: string, params?: any): Promise<T> {
     const cacheKey = this.getCacheKey(url, params);
 
-    // 1. СНАЧАЛА ПРОВЕРЯЕМ КЭШ
+    // Network first: всегда пробуем сеть
     try {
-      const cachedItem = await AsyncStorage.getItem(cacheKey);
-      if (cachedItem) {
-        const parsedCache = JSON.parse(cachedItem);
-        const isFresh = Date.now() - parsedCache.timestamp < this.CACHE_TTL_MS;
+      if (__DEV__) console.log(`🚀 [REQUEST] GET ${url}`);
 
-        // Если кэш есть и он еще "свежий" (не прошло 5 минут) - отдаем его и НЕ делаем запрос к сети
-        if (isFresh) {
-          if (__DEV__) {
-            console.log(
-              `📦 [DATA SOURCE] Данные для ${url} загружены из КЭША (без запроса к сети).`,
-            );
-          }
-          return parsedCache.data as T;
-        } else {
-          if (__DEV__)
-            console.log(
-              `🔄 [CACHE EXPIRED] Кэш для ${url} протух. Делаем новый запрос...`,
-            );
-        }
-      }
-    } catch (e) {
-      if (__DEV__) console.error("❌ [CACHE ERROR] Ошибка чтения кэша", e);
-    }
-
-    try {
       const response = await this.instance.get<T>(url, { params });
 
-      if (__DEV__) {
-        console.log(`🌐 [DATA SOURCE] Данные для ${url} загружены из СЕТИ.`);
-      }
+      if (__DEV__) console.log(`🌐 [NET] ${url} — OK`);
 
-      const cacheDataToSave = {
-        timestamp: Date.now(),
-        data: response.data,
-      };
-
-      AsyncStorage.setItem(cacheKey, JSON.stringify(cacheDataToSave))
-        .then(() => {
-          if (__DEV__)
-            console.log(`💾[CACHE SAVED] Данные для ${url} обновлены в кэше.`);
-        })
-        .catch((e) => {
-          if (__DEV__)
-            console.error("❌ [CACHE ERROR] Ошибка сохранения кэша", e);
-        });
+      // Сохраняем в кэш в фоне
+      AsyncStorage.setItem(
+        cacheKey,
+        JSON.stringify({ timestamp: Date.now(), data: response.data }),
+      ).catch(() => {});
 
       return response.data;
     } catch (error: any) {
-      if (error.isNetworkError) {
-        if (__DEV__) {
-          console.log(
-            `⚠️[NETWORK OFFLINE] Нет сети. Пытаемся достать любой кэш для: ${url}`,
-          );
-        }
+      // Сеть не доступна — fallback на кэш
+      if (__DEV__) console.log(`⚠️ [NET FAIL] ${url} — пробуем кэш...`);
 
-        try {
-          const cachedItem = await AsyncStorage.getItem(cacheKey);
-          if (cachedItem) {
-            const parsedCache = JSON.parse(cachedItem);
-            if (__DEV__) {
-              console.log(
-                `📦 [DATA SOURCE] Данные для ${url} загружены из СТАРОГО КЭША.`,
-              );
-            }
-            return parsedCache.data as T;
-          }
-        } catch (cacheError) {
-          if (__DEV__)
-            console.error("❌ [CACHE ERROR] Ошибка чтения кэша", cacheError);
+      try {
+        const cachedItem = await AsyncStorage.getItem(cacheKey);
+        if (cachedItem) {
+          const parsedCache = JSON.parse(cachedItem);
+          if (__DEV__) console.log(`📦 [CACHE] ${url} — данные из кэша`);
+          return parsedCache.data as T;
         }
+      } catch (cacheError) {
+        if (__DEV__) console.error("❌ [CACHE ERROR]", cacheError);
       }
 
       throw error;
