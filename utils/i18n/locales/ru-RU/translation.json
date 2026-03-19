@@ -53,7 +53,21 @@
     "title": "Поиск",
     "notFound": "Ничего не найдено :(",
     "placeholder": "Поиск...",
-    "restrict": "Введите как минимум 3 символа"
+    "restrict": "Введите как минимум 3 символа",
+    "filter": "Фильтры",
+    "field": "Искать в",
+    "fieldAll": "Все",
+    "fieldTitle": "Заголовок",
+    "fieldSlug": "Описание",
+    "fieldContent": "Контент",
+    "sort": "Сортировка",
+    "sortDefault": "По умолч.",
+    "sortTitleAsc": "А → Я",
+    "sortTitleDesc": "Я → А",
+    "sortNewest": "Новые",
+    "sortOldest": "Старые",
+    "reset": "Сбросить",
+    "apply": "Применить"
   },
   "thread": {
     "info": {

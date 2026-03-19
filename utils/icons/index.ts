@@ -6,3 +6,4 @@ export { Social } from "./Social";
 export { Telegram } from "./Telegram";
 export { GitHub } from "./GitHub";
 export { Close } from "./Close";
+export { Filter } from "./Filter";

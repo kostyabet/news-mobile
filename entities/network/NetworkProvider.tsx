@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, ReactNode } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { NetworkContext } from './NetworkContext'

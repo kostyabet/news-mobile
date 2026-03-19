@@ -4,6 +4,8 @@ import {ArticlesContext, ArticleContextType} from "@/entities/article/ArticleCon
 import { useApi } from "../api/useApi";
 import {delArticle, getAllArticles, postArticle, putArticle} from "../services/article";
 import {useTranslation} from "react-i18next";
+import { SearchFilters, DEFAULT_FILTERS } from "@/utils/search/types";
+import { fuzzySearchArticles } from "@/utils/search/fuzzySearch";
 
 interface ArticleProviderProps {
     children: React.ReactNode;
@@ -42,6 +44,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     })
     
     const [debounceSearch, setDebounceSearch] = useState<string>("");
+    const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
 
     const handleSetSearch = (search?: string) => {
         setDebounceSearch(search || "");
@@ -90,14 +93,11 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     };
 
     const filterThreads = useMemo(() : Article[] => {
-        if (!debounceSearch.trim()) return articles;
-
-        const searchLower = debounceSearch.toLowerCase();
-        return articles.filter(article =>
-            article.title.toLowerCase().includes(searchLower) ||
-            article.slug.toLowerCase().includes(searchLower)
-        );
-    }, [articles, debounceSearch]);
+        return fuzzySearchArticles(articles, debounceSearch, {
+            searchField: filters.searchField,
+            sortBy: filters.sortBy,
+        });
+    }, [articles, debounceSearch, filters]);
 
     const contextValue: ArticleContextType = {
         articles: filterThreads,
@@ -106,6 +106,8 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
         deleteArticle,
         handleSetSearch,
         isLoading,
+        filters,
+        setFilters,
     };
 
     return (

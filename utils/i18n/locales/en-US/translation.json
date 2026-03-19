@@ -53,7 +53,21 @@
     "title": "Search",
     "notFound": "Nothing not found :(",
     "placeholder": "Search...",
-    "restrict": "Write at least 3 symbols"
+    "restrict": "Write at least 3 symbols",
+    "filter": "Filters",
+    "field": "Search in",
+    "fieldAll": "All",
+    "fieldTitle": "Title",
+    "fieldSlug": "Description",
+    "fieldContent": "Content",
+    "sort": "Sort by",
+    "sortDefault": "Default",
+    "sortTitleAsc": "A → Z",
+    "sortTitleDesc": "Z → A",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "reset": "Reset",
+    "apply": "Apply"
   },
   "thread": {
     "info": {

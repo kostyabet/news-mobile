@@ -6,6 +6,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import {
   CustomLayout,
@@ -23,15 +24,23 @@ import { NotFound } from "@/utils/components/Search/NotFound";
 import { useArticles } from "@/entities/article/useArticles";
 import { ThreadModal } from "@/utils/components/Modal/ThreadModal";
 import { CreateEditArticle } from "@/entities/article/model";
+import { Filter } from "@/utils/icons/Filter";
+import { FilterModal } from "@/utils/components/Search/FilterModal";
+import { DEFAULT_FILTERS } from "@/utils/search/types";
 
 const SEARCH_BAR_HEIGHT = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 10) / 2;
 
 export default function Newspaper() {
-  const { articles, isLoading, handleSetSearch, addArticle } = useArticles();
+  const { articles, isLoading, handleSetSearch, addArticle, filters, setFilters } = useArticles();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpenCreate, setIsOpenCreate] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+
+  const hasActiveFilters =
+    filters.searchField !== DEFAULT_FILTERS.searchField ||
+    filters.sortBy !== DEFAULT_FILTERS.sortBy;
 
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -104,13 +113,32 @@ export default function Newspaper() {
         bounces={true}
       >
         <CustomLayout>
-          <Animated.View style={animatedContainerStyle}>
-            <CustomSearchBarItem
-              search={searchQuery}
-              handleSearch={(val) => handleSearch(val || "")}
-              onCancel={() => hideSearch()}
-              isAutoFocus={false}
-            />
+          <Animated.View style={[animatedContainerStyle, styles.searchRow]}>
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                { backgroundColor: colors.bcBlockColor },
+              ]}
+              onPress={() => setFilterVisible(true)}
+            >
+              <Filter width={20} height={20} />
+              {hasActiveFilters && (
+                <View
+                  style={[
+                    styles.filterBadge,
+                    { backgroundColor: colors.linkColor },
+                  ]}
+                />
+              )}
+            </TouchableOpacity>
+            <View style={styles.searchBarWrapper}>
+              <CustomSearchBarItem
+                search={searchQuery}
+                handleSearch={(val) => handleSearch(val || "")}
+                onCancel={() => hideSearch()}
+                isAutoFocus={false}
+              />
+            </View>
           </Animated.View>
 
           <View style={styles.containerHeader}>
@@ -156,6 +184,13 @@ export default function Newspaper() {
         onComplete={handleCreateArticle}
         mode={"create"}
       />
+
+      <FilterModal
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        filters={filters}
+        onApply={setFilters}
+      />
     </>
   );
 }
@@ -186,5 +221,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  searchBarWrapper: {
+    flex: 1,
+  },
+  filterButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 5,
+  },
+  filterBadge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });
