@@ -275,6 +275,15 @@ class AxiosClient {
     return response.data;
   }
 
+  public async postFormData<T = any>(url: string, formData: FormData): Promise<T> {
+    const response = await this.instance.post<T>(url, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  }
+
   public async put<T = any>(url: string, data?: any): Promise<T> {
     const response = await this.instance.put<T>(url, data);
     this.clearCacheForUrl(url);

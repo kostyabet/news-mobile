@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTheme } from "@/utils/theme/useTheme";
 import { SearchItem } from "@/utils/components/Search/SearchItem";
@@ -32,18 +32,28 @@ export const ArticleCard = ({
       style={[
         styles.container,
         {
-          flexDirection: reverse ? "row-reverse" : "row",
           borderColor: colors.borderColor,
           backgroundColor: colors.bcBlockColor,
         },
       ]}
       onPress={handlePress}
     >
+      {article.imageUrl ? (
+        <Image source={{ uri: article.imageUrl }} style={styles.img} />
+      ) : null}
       <View style={styles.info}>
-        <Text style={[styles.title, { color: colors.textColor }]}>
+        <Text
+          style={[styles.title, { color: colors.textColor }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {article.title}
         </Text>
-        <Text style={[styles.description, { color: colors.textColor }]}>
+        <Text
+          style={[styles.description, { color: colors.textColor }]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {article.slug}
         </Text>
       </View>
@@ -54,25 +64,27 @@ export const ArticleCard = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    maxHeight: 120,
     borderRadius: 12,
-    padding: 10,
-    justifyContent: "space-between",
+    overflow: "hidden",
+    flexDirection: "column",
   },
   title: {
-    fontSize: 21,
+    fontSize: 16,
     fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
   },
   description: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
-    flexShrink: 1,
   },
   img: {
-    width: 100,
-    height: 100,
+    width: "100%",
+    aspectRatio: 1,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   info: {
     flexDirection: "column",
+    padding: 10,
+    gap: 4,
   },
 });

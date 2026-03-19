@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useArticles } from "@/entities/article/useArticles";
 import { CustomButton, CustomLayout, ReturnButton } from "@/utils/components";
@@ -33,12 +33,14 @@ export default function ThreadDetailScreen() {
     fetchThread(articleId);
   }, [articleId]);
 
-  const handleEditThread = async (article: CreateEditArticle) => {
+  const handleEditThread = async (updatedData: CreateEditArticle) => {
     try {
-      await updateArticle(articleId, article);
-      await fetchThread(articleId);
+      await updateArticle(articleId, updatedData);
+      setArticle((prev) =>
+        prev ? { ...prev, ...updatedData } : prev,
+      );
     } catch {
-      console.error("Error updating article", article);
+      console.error("Error updating article", updatedData);
     }
   };
 
@@ -55,7 +57,7 @@ export default function ThreadDetailScreen() {
   const handleDelete = () => {
     Alert.alert(
       t("thread.delete.title"),
-      t("thread.delete.content"),
+      t("thread.delete.description"),
       [
         {
           text: t("thread.delete.cancel"),
@@ -106,6 +108,13 @@ export default function ThreadDetailScreen() {
               {article.title}
             </Text>
 
+            {article.imageUrl ? (
+              <Image
+                source={{ uri: article.imageUrl }}
+                style={styles.articleImage}
+              />
+            ) : null}
+
             <ThreadInfoBlock
               title={t("thread.info.slug")}
               content={article.slug}
@@ -130,6 +139,7 @@ export default function ThreadDetailScreen() {
         initContent={article.content}
         initTitle={article.title}
         initSlug={article.slug}
+        initImageUrl={article.imageUrl}
       />
     </>
   );
@@ -170,5 +180,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
+  },
+  articleImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 12,
   },
 });

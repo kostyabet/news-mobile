@@ -1,4 +1,5 @@
 import {
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,7 +16,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CustomButton } from "@/utils/components";
 import { useTranslation } from "react-i18next";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import * as ImagePicker from "expo-image-picker";
+import { uploadArticleImage } from "@/entities/services/article";
 
 interface ArticleModalProps {
   visible: boolean;
@@ -25,6 +27,7 @@ interface ArticleModalProps {
   initTitle?: string;
   initContent?: string;
   initSlug?: string;
+  initImageUrl?: string;
 }
 
 export const ThreadModal = ({
@@ -35,10 +38,12 @@ export const ThreadModal = ({
   initTitle = "",
   initContent = "",
   initSlug = "",
+  initImageUrl = "",
 }: ArticleModalProps) => {
   const [title, setTitle] = useState<string>(initTitle);
   const [content, setContent] = useState<string>(initContent);
   const [slug, setSlug] = useState<string>(initSlug);
+  const [imageUri, setImageUri] = useState<string>(initImageUrl);
   const [isLoading, setIsLoading] = useState(false);
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -47,7 +52,21 @@ export const ThreadModal = ({
     setTitle(initTitle);
     setContent(initContent);
     setSlug(initSlug);
-  }, [initTitle, initContent, initSlug]);
+    setImageUri(initImageUrl);
+  }, [initTitle, initContent, initSlug, initImageUrl]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   const handleCreate = async () => {
     if (!title.trim() || !content.trim() || !slug.trim()) {
@@ -56,12 +75,26 @@ export const ThreadModal = ({
 
     setIsLoading(true);
     try {
-      await onComplete({ title: title, content: content, slug: slug });
+      let finalImageUrl: string | undefined;
+
+      if (imageUri && !imageUri.startsWith("http")) {
+        finalImageUrl = await uploadArticleImage(imageUri);
+      } else if (imageUri) {
+        finalImageUrl = imageUri;
+      }
+
+      await onComplete({
+        title,
+        content,
+        slug,
+        imageUrl: finalImageUrl,
+      });
 
       if (mode === "create") {
         setTitle("");
         setContent("");
         setSlug("");
+        setImageUri("");
       }
       onClose();
     } catch (error) {
@@ -75,6 +108,7 @@ export const ThreadModal = ({
     setTitle("");
     setContent("");
     setSlug("");
+    setImageUri("");
     onClose();
   };
 
@@ -133,6 +167,36 @@ export const ThreadModal = ({
 
           <ScrollView style={styles.scrollView}>
             <View style={styles.form}>
+              <TouchableOpacity
+                style={[
+                  styles.imagePickerButton,
+                  { backgroundColor: colors.bcSubBlockColor },
+                ]}
+                onPress={pickImage}
+              >
+                {imageUri ? (
+                  <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                ) : (
+                  <Text
+                    style={[
+                      styles.imagePickerText,
+                      { color: colors.placeholderColor },
+                    ]}
+                  >
+                    {t("thread.create.image")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+              {imageUri ? (
+                <TouchableOpacity onPress={pickImage}>
+                  <Text
+                    style={[styles.imageChangeText, { color: colors.linkColor }]}
+                  >
+                    {t("thread.create.imageChange")}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
               <Text style={[styles.label, { color: colors.textColor }]}>
                 {labels.title}
               </Text>
@@ -259,7 +323,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingTop: 20,
     paddingHorizontal: 16,
-    maxHeight: "80%",
+    maxHeight: "90%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -322,13 +386,36 @@ const styles = StyleSheet.create({
     fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
   },
   scrollView: {
-    maxHeight: 400,
+    flexGrow: 1,
   },
   modalFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 20,
     gap: 12,
+  },
+  imagePickerButton: {
+    borderRadius: 10,
+    height: 120,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  imagePreview: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  imagePickerText: {
+    fontSize: 16,
+    fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
+  },
+  imageChangeText: {
+    fontSize: 14,
+    fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
+    textAlign: "center",
+    marginBottom: 10,
   },
   button: {
     flex: 1,

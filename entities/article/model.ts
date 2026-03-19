@@ -3,6 +3,7 @@ export interface Article {
   title: string;
   content: string;
   slug: string;
+  imageUrl?: string;
 }
 
 export type CreateEditArticle = Omit<Article, "id">;

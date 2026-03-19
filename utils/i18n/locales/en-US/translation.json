@@ -101,6 +101,8 @@
       "cancel": "Cancel",
       "slug": "Slug",
       "slugPlaceholder": "Short description of choosen theme",
+      "image": "Add photo",
+      "imageChange": "Change photo",
       "error": "Create new article error"
     },
     "edit": {

@@ -84,7 +84,8 @@ export default {
           "icon": "./assets/icon.png",
           "color": "#021024"
         }
-      ]
+      ],
+      "expo-image-picker"
     ],
     "updates": {
       "url": "https://u.expo.dev/9d29b229-3dc6-4123-a07a-f6eb28ee5a38",
