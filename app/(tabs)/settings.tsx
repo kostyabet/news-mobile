@@ -4,6 +4,7 @@ import {
   GitHub,
   Language as LanguageIcon,
   Theme as ThemeIcon,
+  Bell,
 } from "@/utils/icons";
 import { useTheme } from "@/utils/theme/useTheme";
 import { SettingsBlock } from "@/utils/components/Settings/SettingsBlock";
@@ -21,6 +22,7 @@ import { SocialItem } from "@/utils/components/Settings/SocialItem";
 import { LinkedIn } from "@/utils/icons/LinkedIn";
 import { Telegram } from "@/utils/icons/Telegram";
 import { AboutApp } from "@/utils/components/Settings/AboutApp";
+import { NotificationSettings } from "@/utils/components/Settings/NotificationSettings";
 import LottieView from "lottie-react-native";
 import vazonJson from "@/assets/vazon.json";
 import { transparent } from "react-native-paper/src/styles/themes/v2/colors";
@@ -111,6 +113,12 @@ export default function SettingsPage() {
               activeIndex={currentLanguage.id}
               setActiveIndex={(id) => handleLanguageChange(id)}
             />
+          </SettingsBlock>
+          <SettingsBlock
+            name={t("settings.notifications.title")}
+            icon={<Bell width={20} height={20} />}
+          >
+            <NotificationSettings />
           </SettingsBlock>
           <SettingsBlock
             name={t("settings.contacts.title")}

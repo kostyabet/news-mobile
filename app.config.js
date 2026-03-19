@@ -77,6 +77,13 @@ export default {
         {
           "assetsPaths": ["./assets/lottie"]
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#021024"
+        }
       ]
     ],
     "updates": {

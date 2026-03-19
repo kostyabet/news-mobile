@@ -37,6 +37,18 @@
       "platform": "Platform",
       "update": "Update Chanel"
     },
+    "notifications": {
+      "title": "Notifications",
+      "enable": "Daily reminder",
+      "time": "Reminder time",
+      "notificationTitle": "Vazon News",
+      "notificationBody": "Check out new articles!",
+      "permissionDenied": "Notifications are disabled in system settings",
+      "enabled": "Notifications enabled",
+      "enabledBody": "You will receive daily reminders",
+      "disabled": "Notifications disabled",
+      "disabledBody": "Daily reminders are turned off"
+    },
     "footer": {
       "first": "Non commercial project open source project. You can see ",
       "source_code": "source code",
