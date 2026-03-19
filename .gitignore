@@ -42,3 +42,5 @@ android/
 
 .env
 .env.development
+
+CLAUDE.md

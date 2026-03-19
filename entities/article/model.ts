@@ -3,9 +3,10 @@ export interface Article {
   title: string;
   content: string;
   slug: string;
+  imageUrl?: string;
 }
 
-export type CreateEditArticle = Omit<Article, 'id'>
+export type CreateEditArticle = Omit<Article, "id">;
 
-export type CreateArticle = CreateEditArticle
-export type UpdateArticle = CreateEditArticle
+export type CreateArticle = CreateEditArticle;
+export type UpdateArticle = CreateEditArticle;

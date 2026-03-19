@@ -22,8 +22,12 @@ export const SearchItem = ({ article, onClick }: SearchItemProps) => {
       onPress={() => onClick()}
     >
       <View style={styles.content}>
-        <Text style={[ styles.header, { color: colors.textColor }]}>{article.title}</Text>
-        <Text style={[ styles.desctiption, { color: colors.textColor }]}>{article.slug}</Text>
+        <Text style={[styles.header, { color: colors.textColor }]}>
+          {article.title}
+        </Text>
+        <Text style={[styles.desctiption, { color: colors.textColor }]}>
+          {article.slug}
+        </Text>
       </View>
       <Text style={{ color: colors.textColor }}>{">"}</Text>
     </TouchableOpacity>
@@ -44,7 +48,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     flexDirection: "column",
-    maxWidth: '90%'
+    maxWidth: "90%",
   },
   header: {
     fontSize: 16,

@@ -37,6 +37,18 @@
       "platform": "Platform",
       "update": "Update Chanel"
     },
+    "notifications": {
+      "title": "Notifications",
+      "enable": "Daily reminder",
+      "time": "Reminder time",
+      "notificationTitle": "Vazon News",
+      "notificationBody": "Check out new articles!",
+      "permissionDenied": "Notifications are disabled in system settings",
+      "enabled": "Notifications enabled",
+      "enabledBody": "You will receive daily reminders",
+      "disabled": "Notifications disabled",
+      "disabledBody": "Daily reminders are turned off"
+    },
     "footer": {
       "first": "Non commercial project open source project. You can see ",
       "source_code": "source code",
@@ -53,7 +65,21 @@
     "title": "Search",
     "notFound": "Nothing not found :(",
     "placeholder": "Search...",
-    "restrict": "Write at least 3 symbols"
+    "restrict": "Write at least 3 symbols",
+    "filter": "Filters",
+    "field": "Search in",
+    "fieldAll": "All",
+    "fieldTitle": "Title",
+    "fieldSlug": "Description",
+    "fieldContent": "Content",
+    "sort": "Sort by",
+    "sortDefault": "Default",
+    "sortTitleAsc": "A → Z",
+    "sortTitleDesc": "Z → A",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "reset": "Reset",
+    "apply": "Apply"
   },
   "thread": {
     "info": {
@@ -75,6 +101,8 @@
       "cancel": "Cancel",
       "slug": "Slug",
       "slugPlaceholder": "Short description of choosen theme",
+      "image": "Add photo",
+      "imageChange": "Change photo",
       "error": "Create new article error"
     },
     "edit": {
@@ -96,6 +124,34 @@
       "cancel": "Cancel",
       "error": "Error delete article"
     }
+  },
+  "auth": {
+    "restrict": {
+      "login": "Login should have at least 4 symbols",
+      "pass": "Password should have at least 8 symbols"
+    },
+    "signIn": {
+      "header": "Sign In",
+      "description": "Sign in your account, for continue",
+      "login": "Login",
+      "password": "Password",
+      "submit": "Sign In",
+      "no-acc": "Don't have an account? ",
+      "reg": "Sign Up"
+    },
+    "signUp": {
+      "header": "Sign Up",
+      "description": "Create new account",
+      "login": "Login",
+      "password": "Password",
+      "role": "Choose role",
+      "submit": "Sign Up",
+      "has-acc": "Already have account? ",
+      "in": "Sign In"
+    }
+  },
+  "profile": {
+    "tab": "Profile"
   },
   "network": {
     "check": "Checking connection...",

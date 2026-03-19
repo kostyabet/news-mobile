@@ -1,7 +1,7 @@
 export interface ApiResponse<T = any> {
   data: T;
   message?: string;
-  status: 'success' | 'error';
+  status: "success" | "error";
   timestamp?: string;
 }
 
@@ -18,7 +18,7 @@ export interface QueryParams {
   limit?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   [key: string]: any;
 }
 
