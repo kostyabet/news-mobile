@@ -1,8 +1,47 @@
-import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";import { Animated, StyleSheet, View, Dimensions } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 
-export const ArticleBlockSkeleton = () => {
+const HORIZONTAL_PADDING = 16;
+const GRID_GAP = 10;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GRID_GAP) / 2;
+
+type SkeletonVariant = "hero" | "horizontal" | "compact";
+
+const ShimmerBlock = ({
+  height,
+  width,
+  opacity,
+  color,
+  borderRadius = 7,
+  style,
+}: {
+  height?: number | string;
+  width?: number | string;
+  opacity: Animated.Value;
+  color: string;
+  borderRadius?: number;
+  style?: object;
+}) => (
+  <Animated.View
+    style={[
+      {
+        height,
+        width,
+        backgroundColor: color,
+        opacity,
+        borderRadius,
+      },
+      style,
+    ]}
+  />
+);
+
+export const ArticleBlockSkeleton = ({
+  variant = "compact",
+}: {
+  variant?: SkeletonVariant;
+}) => {
   const opacity = useRef(new Animated.Value(0.3)).current;
   const { colors } = useTheme();
 
@@ -23,36 +62,76 @@ export const ArticleBlockSkeleton = () => {
     ).start();
   }, [opacity]);
 
-  return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.bcBlockColor,
-          borderColor: colors.borderColor,
-        },
-      ]}
-    >
-      <View style={styles.info}>
-        <Animated.View
-          style={[
-            {
-              height: 25,
-              backgroundColor: colors.skeletonColor,
-              opacity,
-              borderRadius: 7,
-            },
-          ]}
+  const skeletonColor = colors.skeletonColor;
+  const bgColor = colors.bcBlockColor;
+
+  if (variant === "hero") {
+    return (
+      <View style={[styles.heroContainer, { backgroundColor: bgColor }]}>
+        <ShimmerBlock
+          opacity={opacity}
+          color={skeletonColor}
+          borderRadius={0}
+          style={{ aspectRatio: 16 / 9, width: "100%" }}
         />
-        <Animated.View
-          style={[
-            {
-              height: 70,
-              backgroundColor: colors.skeletonColor,
-              opacity,
-              borderRadius: 7,
-            },
-          ]}
+        <View style={styles.heroInfo}>
+          <ShimmerBlock height={24} opacity={opacity} color={skeletonColor} />
+          <ShimmerBlock
+            height={16}
+            width="70%"
+            opacity={opacity}
+            color={skeletonColor}
+          />
+          <ShimmerBlock
+            height={14}
+            width="40%"
+            opacity={opacity}
+            color={skeletonColor}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (variant === "horizontal") {
+    return (
+      <View style={[styles.horizontalContainer, { backgroundColor: bgColor }]}>
+        <ShimmerBlock
+          height="100%"
+          width={110}
+          opacity={opacity}
+          color={skeletonColor}
+          borderRadius={0}
+        />
+        <View style={styles.horizontalInfo}>
+          <ShimmerBlock height={18} opacity={opacity} color={skeletonColor} />
+          <ShimmerBlock
+            height={14}
+            width="60%"
+            opacity={opacity}
+            color={skeletonColor}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  // compact
+  return (
+    <View style={[styles.compactContainer, { backgroundColor: bgColor }]}>
+      <ShimmerBlock
+        opacity={opacity}
+        color={skeletonColor}
+        borderRadius={0}
+        style={{ aspectRatio: 1, width: "100%" }}
+      />
+      <View style={styles.compactInfo}>
+        <ShimmerBlock height={16} opacity={opacity} color={skeletonColor} />
+        <ShimmerBlock
+          height={12}
+          width="70%"
+          opacity={opacity}
+          color={skeletonColor}
         />
       </View>
     </View>
@@ -60,21 +139,35 @@ export const ArticleBlockSkeleton = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  heroContainer: {
+    width: "100%",
+    borderRadius: 20,
+    overflow: "hidden",
+  },
+  heroInfo: {
+    padding: 16,
+    gap: 8,
+  },
+  horizontalContainer: {
+    width: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+    flexDirection: "row",
+    height: 110,
+  },
+  horizontalInfo: {
     flex: 1,
-    borderRadius: 10,
+    padding: 12,
+    justifyContent: "center",
+    gap: 8,
+  },
+  compactContainer: {
+    width: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  compactInfo: {
     padding: 10,
-    justifyContent: "space-between",
-    gap: 5,
-  },
-  img: {
-    width: 100,
-    height: 100,
-  },
-  info: {
-    flex: 5,
-    flexShrink: 1,
-    flexDirection: "column",
-    gap: 5,
+    gap: 6,
   },
 });

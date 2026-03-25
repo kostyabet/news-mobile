@@ -1,11 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
-  Image,
   Linking,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
@@ -20,15 +21,20 @@ import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { ThreadModal } from "@/utils/components/Modal/ThreadModal";
-import { Article, CreateEditArticle } from "@/entities/article/model";
+import { Article, CreateEditArticle, ReactionsCount } from "@/entities/article/model";
 import { useApi } from "@/entities/api/useApi";
 import { getArticle } from "@/entities/services/article";
+import { getReactions, setReaction, removeReaction } from "@/entities/services/reaction";
 import { useUser } from "@/entities/user/useUser";
+import { Image } from "expo-image";
+import axiosClient from "@/entities/api/api";
+import { CommentsSection } from "@/utils/components/Comments/CommentsSection";
 
 export default function ThreadDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState(false);
+  const [reactions, setReactions] = useState<ReactionsCount | null>(null);
 
   const { colors } = useTheme();
   const { updateArticle, deleteArticle, refreshArticles } = useArticles();
@@ -38,14 +44,49 @@ export default function ThreadDetailScreen() {
   const articleId = parseInt(params.id, 10);
   const [article, setArticle] = useState<Article | null>(null);
 
-  const { execute: fetchThread } = useApi(getArticle, {
+  const { execute: fetchThread, loading: articleLoading } = useApi(getArticle, {
     onSuccess: (data: Article) => {
       setArticle(data);
     },
   });
+  const { execute: fetchReactions } = useApi(getReactions, {
+    onSuccess: (data: ReactionsCount) => {
+      setReactions(data);
+    },
+  });
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
     fetchThread(articleId);
+    fetchReactions(articleId);
   }, [articleId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchThread(articleId), fetchReactions(articleId)]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [articleId]);
+
+  const LIKE_TYPE_ID = 1;
+  const DISLIKE_TYPE_ID = 2;
+
+  const handleReaction = async (type: "like" | "dislike") => {
+    const typeId = type === "like" ? LIKE_TYPE_ID : DISLIKE_TYPE_ID;
+    try {
+      if (reactions?.userReaction === type) {
+        const result = await removeReaction(articleId);
+        setReactions(result);
+      } else {
+        const result = await setReaction(articleId, typeId);
+        setReactions(result);
+      }
+    } catch(e) {
+      console.error("Error setting reaction");
+    }
+  };
 
   const handleEditThread = async (updatedData: CreateEditArticle) => {
     try {
@@ -81,6 +122,7 @@ export default function ThreadDetailScreen() {
     );
   };
 
+  const imageUri = article?.imageUrl ? axiosClient.getFileUrl(article.imageUrl) : undefined;
   const isOwner = article?.author && currentUser?.id === article.author.id;
 
   const getShareText = () => {
@@ -112,6 +154,13 @@ export default function ThreadDetailScreen() {
   };
 
   if (!article) {
+    if (articleLoading) {
+      return (
+        <View style={[styles.notFound, { backgroundColor: colors.bcColor }]}>
+          <ActivityIndicator size="large" color={colors.linkColor} />
+        </View>
+      );
+    }
     return (
       <View style={[styles.notFound, { backgroundColor: colors.bcColor }]}>
         <Text style={[styles.notFoundText, { color: colors.textColor }]}>
@@ -126,6 +175,14 @@ export default function ThreadDetailScreen() {
     <>
       <ScrollView
         style={[styles.container, { backgroundColor: colors.bcColor }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.linkColor}
+            colors={[colors.linkColor]}
+          />
+        }
       >
         <CustomLayout>
           {/* Header */}
@@ -152,13 +209,13 @@ export default function ThreadDetailScreen() {
           </View>
 
           {/* Hero image */}
-          {article.imageUrl ? (
+          {imageUri ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => setImagePreview(true)}
             >
               <Image
-                source={{ uri: article.imageUrl }}
+                source={{ uri: imageUri }}
                 style={styles.heroImage}
               />
             </TouchableOpacity>
@@ -206,7 +263,7 @@ export default function ThreadDetailScreen() {
             >
               {article.author.userInfo?.avatar ? (
                 <Image
-                  source={{ uri: article.author.userInfo.avatar }}
+                  source={{ uri: axiosClient.getFileUrl(article.author.userInfo.avatar) }}
                   style={styles.authorAvatar}
                 />
               ) : (
@@ -258,8 +315,66 @@ export default function ThreadDetailScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Share */}
+          {/* Tags & Categories */}
+          {((article.tags && article.tags.length > 0) || (article.categories && article.categories.length > 0)) && (
+            <View style={styles.pillsRow}>
+              {article.categories?.map((cat) => (
+                <View
+                  key={`cat-${cat}`}
+                  style={[styles.categoryPill, { backgroundColor: colors.linkColor }]}
+                >
+                  <Text style={styles.pillText}>{cat}</Text>
+                </View>
+              ))}
+              {article.tags?.map((tag) => (
+                <View
+                  key={`tag-${tag}`}
+                  style={[styles.tagPill, { borderColor: colors.linkColor }]}
+                >
+                  <Text style={[styles.pillText, { color: colors.linkColor }]}>
+                    #{tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Reactions + Share */}
           <View style={styles.row}>
+            <View style={styles.reactionsRow}>
+              <TouchableOpacity
+                style={[
+                  styles.reactionButton,
+                  { backgroundColor: colors.bcBlockColor },
+                  reactions?.userReaction === "like" && styles.reactionButtonActive,
+                ]}
+                onPress={() => handleReaction("like")}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.reactionEmoji}>
+                  {reactions?.userReaction === "like" ? "\uD83D\uDC4D" : "\uD83D\uDC4D"}
+                </Text>
+                <Text style={[styles.reactionCount, { color: colors.textColor }]}>
+                  {reactions?.likes ?? 0}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.reactionButton,
+                  { backgroundColor: colors.bcBlockColor },
+                  reactions?.userReaction === "dislike" && styles.reactionButtonActive,
+                ]}
+                onPress={() => handleReaction("dislike")}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.reactionEmoji}>
+                  {reactions?.userReaction === "dislike" ? "\uD83D\uDC4E" : "\uD83D\uDC4E"}
+                </Text>
+                <Text style={[styles.reactionCount, { color: colors.textColor }]}>
+                  {reactions?.dislikes ?? 0}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={[
                 styles.shareButton,
@@ -274,6 +389,12 @@ export default function ThreadDetailScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Comments */}
+          <CommentsSection
+            articleId={articleId}
+            currentUserId={currentUser?.id}
+          />
+
         </CustomLayout>
       </ScrollView>
 
@@ -286,9 +407,11 @@ export default function ThreadDetailScreen() {
         initTitle={article.title}
         initSlug={article.slug}
         initImageUrl={article.imageUrl}
+        initTags={article.tags}
+        initCategories={article.categories}
       />
 
-      {article.imageUrl && (
+      {imageUri && (
         <Modal
           visible={imagePreview}
           transparent
@@ -300,9 +423,9 @@ export default function ThreadDetailScreen() {
             onPress={() => setImagePreview(false)}
           >
             <Image
-              source={{ uri: article.imageUrl }}
+              source={{ uri: imageUri }}
               style={styles.previewImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </Pressable>
         </Modal>
@@ -415,11 +538,62 @@ const styles = StyleSheet.create({
     fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
   },
 
-  // Share
+  // Tags & Categories
+  pillsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
+  categoryPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  tagPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  pillText: {
+    fontSize: 12,
+    fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
+    color: "#fff",
+  },
+
+  // Reactions + Share
   row: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: 10,
     marginBottom: 16,
+  },
+  reactionsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  reactionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    minWidth: 56,
+    justifyContent: "center",
+  },
+  reactionButtonActive: {
+    borderWidth: 2,
+    borderColor: "#388fe8",
+  },
+  reactionEmoji: {
+    fontSize: 18,
+  },
+  reactionCount: {
+    fontSize: 14,
+    fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
   },
   shareButton: {
     flexDirection: "row",

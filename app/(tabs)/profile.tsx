@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Image,
   Alert,
   Modal,
   ActivityIndicator,
@@ -13,9 +12,13 @@ import {
   Platform,
   Pressable,
   ActionSheetIOS,
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { Input, Icon } from "react-native-elements";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/entities/auth/useAuth";
@@ -27,6 +30,7 @@ import { CustomLayout, PageHeader, CustomButton, ArticleCard } from "@/utils/com
 import { useTheme } from "@/utils/theme/useTheme";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import Toast from "react-native-toast-message";
+import axiosClient from "@/entities/api/api";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -40,16 +44,82 @@ export default function Profile() {
   } = useUser();
   const { colors } = useTheme();
 
+  const PAGE_SIZE = 10;
   const [myArticles, setMyArticles] = useState<Article[]>([]);
-  const { execute: fetchMyArticles } = useApi(getMyArticles, {
-    onSuccess: (data: Article[]) => setMyArticles(data),
-  });
+  const [hasMoreArticles, setHasMoreArticles] = useState(true);
+  const hasMoreRef = useRef(true);
+  const [isLoadingMoreArticles, setIsLoadingMoreArticles] = useState(false);
+  const myPageRef = useRef(1);
+  const isLoadingMoreRef = useRef(false);
+
+  const fetchMyArticlesPage = useCallback(async (page: number, append: boolean) => {
+    const result = await getMyArticles(page, PAGE_SIZE);
+    let items: Article[];
+    let total: number | undefined;
+    if (Array.isArray(result)) {
+      items = result;
+    } else if (result && typeof result === "object" && "data" in result) {
+      items = (result as any).data;
+      total = (result as any).total;
+    } else {
+      items = result as Article[];
+    }
+    if (append) {
+      setMyArticles((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const newItems = items.filter((a) => !existingIds.has(a.id));
+        return [...prev, ...newItems];
+      });
+    } else {
+      setMyArticles(items);
+    }
+    const more = total !== undefined
+      ? page * PAGE_SIZE < total
+      : items.length >= PAGE_SIZE;
+    hasMoreRef.current = more;
+    setHasMoreArticles(more);
+    myPageRef.current = page;
+  }, []);
 
   useEffect(() => {
     if (profile) {
-      fetchMyArticles();
+      myPageRef.current = 1;
+      hasMoreRef.current = true;
+      fetchMyArticlesPage(1, false);
     }
-  }, [profile]);
+  }, [profile, fetchMyArticlesPage]);
+
+  const loadMoreMyArticles = useCallback(async () => {
+    if (isLoadingMoreRef.current || !hasMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    setIsLoadingMoreArticles(true);
+    try {
+      await fetchMyArticlesPage(myPageRef.current + 1, true);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMoreArticles(false);
+    }
+  }, [fetchMyArticlesPage]);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      myPageRef.current = 1;
+      await fetchMyArticlesPage(1, false);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchMyArticlesPage]);
+
+  const handleProfileScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
+    if (distanceFromBottom < 300 && hasMoreArticles && !isLoadingMoreRef.current) {
+      loadMoreMyArticles();
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(false);
@@ -178,8 +248,10 @@ export default function Profile() {
     );
   }
 
-  const avatarElement = profile?.avatar ? (
-    <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+  const avatarUri = profile?.avatar ? axiosClient.getFileUrl(profile.avatar) : undefined;
+
+  const avatarElement = avatarUri ? (
+    <Image source={{ uri: avatarUri }} style={styles.avatar} />
   ) : (
     <View
       style={[
@@ -341,6 +413,16 @@ export default function Profile() {
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bcColor }}
       contentContainerStyle={styles.scrollContent}
+      onScroll={handleProfileScroll}
+      scrollEventThrottle={16}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.linkColor}
+          colors={[colors.linkColor]}
+        />
+      }
     >
       <CustomLayout>
         <PageHeader title={t("profile.title")} />
@@ -354,7 +436,7 @@ export default function Profile() {
           {/* Top row: avatar left, info + edit right */}
           <View style={styles.viewCardRow}>
             <TouchableOpacity
-              onPress={() => profile?.avatar && setAvatarPreview(true)}
+              onPress={() => avatarUri && setAvatarPreview(true)}
             >
               {avatarElement}
             </TouchableOpacity>
@@ -417,6 +499,13 @@ export default function Profile() {
                     variant="horizontal"
                   />
                 ))}
+                {isLoadingMoreArticles && (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.linkColor}
+                    style={{ paddingVertical: 16 }}
+                  />
+                )}
               </View>
             ) : (
               <Text style={[styles.emptyText, { color: colors.textColor }]}>
@@ -431,7 +520,7 @@ export default function Profile() {
         </View>
       </CustomLayout>
 
-      {profile?.avatar && (
+      {avatarUri && (
         <Modal
           visible={avatarPreview}
           transparent
@@ -443,9 +532,9 @@ export default function Profile() {
             onPress={() => setAvatarPreview(false)}
           >
             <Image
-              source={{ uri: profile.avatar }}
+              source={{ uri: avatarUri }}
               style={styles.previewImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </Pressable>
         </Modal>

@@ -5,9 +5,13 @@ export type SortOption = "default" | "title_asc" | "title_desc" | "newest" | "ol
 export interface SearchFilters {
   searchField: SearchField;
   sortBy: SortOption;
+  categories: string[];
+  tags: string[];
 }
 
 export const DEFAULT_FILTERS: SearchFilters = {
   searchField: "all",
   sortBy: "default",
+  categories: [],
+  tags: [],
 };

@@ -7,6 +7,8 @@ import {
   NativeScrollEvent,
   Dimensions,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import {
   CustomLayout,
@@ -15,7 +17,7 @@ import {
   ArticleBlockSkeleton,
   CustomButton,
 } from "@/utils/components";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useTranslation } from "react-i18next";
 import { CustomSearchBarItem } from "@/utils/components/Search/CustomSearchBar";
@@ -38,24 +40,40 @@ export default function Newspaper() {
   const {
     articles,
     isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     handleSetSearch,
     addArticle,
     filters,
     setFilters,
+    refreshArticles,
   } = useArticles();
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpenCreate, setIsOpenCreate] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
 
   const hasActiveFilters =
     filters.searchField !== DEFAULT_FILTERS.searchField ||
-    filters.sortBy !== DEFAULT_FILTERS.sortBy;
+    filters.sortBy !== DEFAULT_FILTERS.sortBy ||
+    filters.categories.length > 0 ||
+    filters.tags.length > 0;
 
   const { colors } = useTheme();
   const { t } = useTranslation();
 
   const searchAnim = useRef(new Animated.Value(0)).current;
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshArticles();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshArticles]);
 
   const handleCreateArticle = async (article: CreateEditArticle) => {
     try {
@@ -93,9 +111,16 @@ export default function Newspaper() {
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = event.nativeEvent.contentOffset.y;
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const y = contentOffset.y;
     if (y < -45 && !isSearchVisible) {
       showSearch();
+    }
+
+    // Infinite scroll: load more when near bottom
+    const distanceFromBottom = contentSize.height - layoutMeasurement.height - y;
+    if (distanceFromBottom < 300) {
+      loadMore();
     }
   };
 
@@ -176,6 +201,14 @@ export default function Newspaper() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         bounces={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.linkColor}
+            colors={[colors.linkColor]}
+          />
+        }
       >
         <CustomLayout>
           <Animated.View style={[animatedContainerStyle, styles.searchRow]}>
@@ -215,13 +248,27 @@ export default function Newspaper() {
             {!isLoading ? (
               renderArticles(articles || [])
             ) : (
-              <View style={styles.skeletonGrid}>
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <View key={index} style={styles.gridCard}>
-                    <ArticleBlockSkeleton />
-                  </View>
-                ))}
-              </View>
+              <>
+                <ArticleBlockSkeleton variant="hero" />
+                <View style={styles.horizontalGroup}>
+                  <ArticleBlockSkeleton variant="horizontal" />
+                  <ArticleBlockSkeleton variant="horizontal" />
+                </View>
+                <View style={styles.gridGroup}>
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <View key={index} style={styles.gridCard}>
+                      <ArticleBlockSkeleton variant="compact" />
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
+            {isLoadingMore && (
+              <ActivityIndicator
+                size="small"
+                color={colors.linkColor}
+                style={styles.loadingMore}
+              />
             )}
           </View>
         </CustomLayout>
@@ -293,9 +340,7 @@ const styles = StyleSheet.create({
   gridCard: {
     width: CARD_WIDTH,
   },
-  skeletonGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: GRID_GAP,
+  loadingMore: {
+    paddingVertical: 16,
   },
 });

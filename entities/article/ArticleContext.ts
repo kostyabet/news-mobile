@@ -9,6 +9,9 @@ export interface ArticleContextType {
   deleteArticle: (id: number) => Promise<void>;
   handleSetSearch: (search?: string) => void;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  loadMore: () => Promise<void>;
   filters: SearchFilters;
   setFilters: (filters: SearchFilters) => void;
   refreshArticles: () => Promise<void>;

@@ -264,6 +264,23 @@ class AxiosClient {
     this.clearCacheForUrl(url);
     return response.data;
   }
+
+  public getFileUrl(keyOrUrl: string): string {
+    if (!keyOrUrl) return '';
+    // If it's already a proxy URL through our API, return as-is
+    if (keyOrUrl.includes('/files/')) {
+      const key = keyOrUrl.split('/files/').pop();
+      return `${this.getBaseUrl()}/files/${key}`;
+    }
+    // If it's an old full MinIO URL, extract the key
+    if (keyOrUrl.startsWith('http')) {
+      const parts = keyOrUrl.split('/');
+      const key = parts[parts.length - 1];
+      return `${this.getBaseUrl()}/files/${key}`;
+    }
+    // It's just a key
+    return `${this.getBaseUrl()}/files/${keyOrUrl}`;
+  }
 }
 
 export default new AxiosClient();

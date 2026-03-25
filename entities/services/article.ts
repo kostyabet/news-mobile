@@ -1,12 +1,16 @@
 import axiosClient from "./../api/api";
 import { CreateArticle, UpdateArticle } from "@/entities/article/model";
 
-export const getAllArticles = async () => {
-  return axiosClient.get("/articles");
+export const getAllArticles = async (page = 1, limit = 10) => {
+  return axiosClient.get("/articles", { page, limit });
 };
 
-export const getMyArticles = async () => {
-  return axiosClient.get("/articles/my");
+export const getMyArticles = async (page = 1, limit = 10) => {
+  return axiosClient.get("/articles/my", { page, limit });
+};
+
+export const getAuthorArticles = async (authorId: number, page = 1, limit = 10) => {
+  return axiosClient.get("/articles", { authorId, page, limit });
 };
 
 export const getArticle = async (id: number) => {
@@ -14,13 +18,21 @@ export const getArticle = async (id: number) => {
 };
 
 export const postArticle = async (article: CreateArticle) => {
-  const { imageUrl, ...rest } = article;
-  return axiosClient.post(`/articles`, { ...rest, image: imageUrl });
+  return axiosClient.post(`/articles`, {
+    title: article.title,
+    content: article.content,
+    slug: article.slug,
+    image: article.imageUrl || undefined,
+  });
 };
 
 export const putArticle = async (id: number, article: UpdateArticle) => {
-  const { imageUrl, ...rest } = article;
-  return axiosClient.put(`/articles/${id}`, { ...rest, image: imageUrl });
+  return axiosClient.put(`/articles/${id}`, {
+    title: article.title,
+    content: article.content,
+    slug: article.slug,
+    image: article.imageUrl || undefined,
+  });
 };
 
 export const delArticle = async (id: number) => {

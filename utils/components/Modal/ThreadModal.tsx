@@ -1,5 +1,6 @@
 import {
-  Image,
+  ActionSheetIOS,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -10,7 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { CreateEditArticle } from "@/entities/article/model";
+import { Image } from "expo-image";
+import { Category, CreateEditArticle, Tag } from "@/entities/article/model";
 import { useTheme } from "@/utils/theme/useTheme";
 import { useEffect, useMemo, useState } from "react";
 import { CustomButton } from "@/utils/components";
@@ -18,6 +20,9 @@ import { useTranslation } from "react-i18next";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import * as ImagePicker from "expo-image-picker";
 import { uploadArticleImage } from "@/entities/services/article";
+import axiosClient from "@/entities/api/api";
+import { getAllCategories } from "@/entities/services/category";
+import { getAllTags } from "@/entities/services/tag";
 
 interface ArticleModalProps {
   visible: boolean;
@@ -28,6 +33,8 @@ interface ArticleModalProps {
   initContent?: string;
   initSlug?: string;
   initImageUrl?: string;
+  initTags?: string[];
+  initCategories?: string[];
 }
 
 export const ThreadModal = ({
@@ -39,11 +46,17 @@ export const ThreadModal = ({
   initContent = "",
   initSlug = "",
   initImageUrl = "",
+  initTags = [],
+  initCategories = [],
 }: ArticleModalProps) => {
   const [title, setTitle] = useState<string>(initTitle);
   const [content, setContent] = useState<string>(initContent);
   const [slug, setSlug] = useState<string>(initSlug);
   const [imageUri, setImageUri] = useState<string>(initImageUrl);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initTags);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initCategories);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -53,18 +66,69 @@ export const ThreadModal = ({
     setContent(initContent);
     setSlug(initSlug);
     setImageUri(initImageUrl);
+    setSelectedTags(initTags);
+    setSelectedCategories(initCategories);
   }, [initTitle, initContent, initSlug, initImageUrl]);
 
-  const pickImage = async () => {
+  useEffect(() => {
+    getAllTags().then(setAvailableTags).catch(() => {});
+    getAllCategories().then(setAvailableCategories).catch(() => {});
+  }, []);
+
+  const processImageResult = (result: ImagePicker.ImagePickerResult) => {
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const pickFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
     });
+    processImageResult(result);
+  };
 
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+  const pickFromCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") return;
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+    processImageResult(result);
+  };
+
+  const handlePickImage = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [
+            t("thread.create.cancel"),
+            t("thread.create.imageFromGallery"),
+            t("thread.create.imageFromCamera"),
+          ],
+          cancelButtonIndex: 0,
+        },
+        (index) => {
+          if (index === 1) pickFromGallery();
+          if (index === 2) pickFromCamera();
+        },
+      );
+    } else {
+      Alert.alert(
+        t("thread.create.imageChange"),
+        undefined,
+        [
+          { text: t("thread.create.imageFromGallery"), onPress: pickFromGallery },
+          { text: t("thread.create.imageFromCamera"), onPress: pickFromCamera },
+          { text: t("thread.create.cancel"), style: "cancel" },
+        ],
+      );
     }
   };
 
@@ -77,17 +141,28 @@ export const ThreadModal = ({
     try {
       let finalImageUrl: string | undefined;
 
-      if (imageUri && !imageUri.startsWith("http")) {
+      if (imageUri && (imageUri.startsWith("file://") || imageUri.startsWith("content://"))) {
         finalImageUrl = await uploadArticleImage(imageUri);
       } else if (imageUri) {
         finalImageUrl = imageUri;
       }
+
+      const tagIds = availableTags
+        .filter((t) => selectedTags.includes(t.tag))
+        .map((t) => t.id);
+      const categoryIds = availableCategories
+        .filter((c) => selectedCategories.includes(c.name))
+        .map((c) => c.id);
 
       await onComplete({
         title,
         content,
         slug,
         imageUrl: finalImageUrl,
+        tags: selectedTags,
+        categories: selectedCategories,
+        tagIds,
+        categoryIds,
       });
 
       if (mode === "create") {
@@ -95,6 +170,8 @@ export const ThreadModal = ({
         setContent("");
         setSlug("");
         setImageUri("");
+        setSelectedTags([]);
+        setSelectedCategories([]);
       }
       onClose();
     } catch (error) {
@@ -109,7 +186,21 @@ export const ThreadModal = ({
     setContent("");
     setSlug("");
     setImageUri("");
+    setSelectedTags([]);
+    setSelectedCategories([]);
     onClose();
+  };
+
+  const toggleTag = (tagName: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagName) ? prev.filter((t) => t !== tagName) : [...prev, tagName],
+    );
+  };
+
+  const toggleCategory = (catName: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catName) ? prev.filter((c) => c !== catName) : [...prev, catName],
+    );
   };
 
   const labels = useMemo(() => {
@@ -172,10 +263,10 @@ export const ThreadModal = ({
                   styles.imagePickerButton,
                   { backgroundColor: colors.bcSubBlockColor },
                 ]}
-                onPress={pickImage}
+                onPress={handlePickImage}
               >
                 {imageUri ? (
-                  <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                  <Image source={{ uri: imageUri.startsWith("file://") || imageUri.startsWith("content://") ? imageUri : axiosClient.getFileUrl(imageUri) }} style={styles.imagePreview} />
                 ) : (
                   <Text
                     style={[
@@ -188,7 +279,7 @@ export const ThreadModal = ({
                 )}
               </TouchableOpacity>
               {imageUri ? (
-                <TouchableOpacity onPress={pickImage}>
+                <TouchableOpacity onPress={handlePickImage}>
                   <Text
                     style={[styles.imageChangeText, { color: colors.linkColor }]}
                   >
@@ -285,6 +376,80 @@ export const ThreadModal = ({
                   {slug.length}/100
                 </Text>
               </View>
+
+              {(availableCategories.length > 0 || availableTags.length > 0) && (
+                <View style={styles.tagCatRow}>
+                  {availableCategories.length > 0 && (
+                    <View style={styles.tagCatSection}>
+                      <Text style={[styles.label, { color: colors.textColor }]}>
+                        {t("thread.create.categories")}
+                      </Text>
+                      <View style={styles.chipsWrap}>
+                        {availableCategories.map((cat) => (
+                          <TouchableOpacity
+                            key={cat.id}
+                            style={[
+                              styles.chip,
+                              { backgroundColor: colors.bcSubBlockColor },
+                              selectedCategories.includes(cat.name) && {
+                                backgroundColor: colors.linkColor,
+                              },
+                            ]}
+                            onPress={() => toggleCategory(cat.name)}
+                          >
+                            <Text
+                              style={[
+                                styles.chipText,
+                                { color: colors.textColor },
+                                selectedCategories.includes(cat.name) && {
+                                  color: "#fff",
+                                },
+                              ]}
+                            >
+                              {cat.name}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  {availableTags.length > 0 && (
+                    <View style={styles.tagCatSection}>
+                      <Text style={[styles.label, { color: colors.textColor }]}>
+                        {t("thread.create.tags")}
+                      </Text>
+                      <View style={styles.chipsWrap}>
+                        {availableTags.map((tg) => (
+                          <TouchableOpacity
+                            key={tg.id}
+                            style={[
+                              styles.chipTag,
+                              { borderColor: colors.bcSubBlockColor, backgroundColor: colors.bcSubBlockColor },
+                              selectedTags.includes(tg.tag) && {
+                                borderColor: colors.linkColor,
+                                backgroundColor: colors.linkColor,
+                              },
+                            ]}
+                            onPress={() => toggleTag(tg.tag)}
+                          >
+                            <Text
+                              style={[
+                                styles.chipText,
+                                { color: colors.textColor },
+                                selectedTags.includes(tg.tag) && {
+                                  color: "#fff",
+                                },
+                              ]}
+                            >
+                              #{tg.tag}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </ScrollView>
 
@@ -432,5 +597,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
     color: "#fff",
+  },
+  tagCatRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  tagCatSection: {
+    flex: 1,
+    gap: 8,
+  },
+  chipsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  chipTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  chipText: {
+    fontSize: 12,
+    fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
   },
 });

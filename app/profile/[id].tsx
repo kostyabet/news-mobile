@@ -1,15 +1,18 @@
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Image,
   Modal,
   Pressable,
   ActivityIndicator,
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
+import { Image } from "expo-image";
 import { TouchableOpacity } from "react-native";
 import { useTheme } from "@/utils/theme/useTheme";
 import { CustomLayout, ReturnButton, ArticleCard } from "@/utils/components";
@@ -17,18 +20,58 @@ import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/entities/api/useApi";
 import { getProfile, UserProfile } from "@/entities/services/profile";
-import { useArticles } from "@/entities/article/useArticles";
+import { getAuthorArticles } from "@/entities/services/article";
+import { Article } from "@/entities/article/model";
+import axiosClient from "@/entities/api/api";
 
 export default function PublicProfileScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const userId = parseInt(params.id, 10);
 
+  const PAGE_SIZE = 10;
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const { articles } = useArticles();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Author articles pagination
+  const [userArticles, setUserArticles] = useState<Article[]>([]);
+  const [hasMoreArticles, setHasMoreArticles] = useState(true);
+  const hasMoreRef = useRef(true);
+  const [isLoadingMoreArticles, setIsLoadingMoreArticles] = useState(false);
+  const authorPageRef = useRef(1);
+  const isLoadingMoreRef = useRef(false);
+
+  const fetchAuthorPage = useCallback(async (page: number, append: boolean) => {
+    const result = await getAuthorArticles(userId, page, PAGE_SIZE);
+    let items: Article[];
+    let total: number | undefined;
+    if (Array.isArray(result)) {
+      items = result;
+    } else if (result && typeof result === "object" && "data" in result) {
+      items = (result as any).data;
+      total = (result as any).total;
+    } else {
+      items = result as Article[];
+    }
+    if (append) {
+      setUserArticles((prev) => {
+        const existingIds = new Set(prev.map((a) => a.id));
+        const newItems = items.filter((a) => !existingIds.has(a.id));
+        return [...prev, ...newItems];
+      });
+    } else {
+      setUserArticles(items);
+    }
+    const more = total !== undefined
+      ? page * PAGE_SIZE < total
+      : items.length >= PAGE_SIZE;
+    hasMoreRef.current = more;
+    setHasMoreArticles(more);
+    authorPageRef.current = page;
+  }, [userId]);
 
   const { execute: fetchProfile, loading } = useApi(getProfile, {
     onSuccess: (data: UserProfile) => setProfile(data),
@@ -36,7 +79,41 @@ export default function PublicProfileScreen() {
 
   useEffect(() => {
     fetchProfile(userId);
-  }, [userId]);
+    authorPageRef.current = 1;
+    hasMoreRef.current = true;
+    fetchAuthorPage(1, false);
+  }, [userId, fetchAuthorPage]);
+
+  const loadMoreAuthorArticles = useCallback(async () => {
+    if (isLoadingMoreRef.current || !hasMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    setIsLoadingMoreArticles(true);
+    try {
+      await fetchAuthorPage(authorPageRef.current + 1, true);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMoreArticles(false);
+    }
+  }, [fetchAuthorPage]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchProfile(userId);
+      authorPageRef.current = 1;
+      await fetchAuthorPage(1, false);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchProfile, userId, fetchAuthorPage]);
+
+  const handleAuthorScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
+    if (distanceFromBottom < 300 && hasMoreArticles && !isLoadingMoreRef.current) {
+      loadMoreAuthorArticles();
+    }
+  };
 
   if (loading || !profile) {
     return (
@@ -48,8 +125,10 @@ export default function PublicProfileScreen() {
     );
   }
 
-  const avatarElement = profile.avatar ? (
-    <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+  const avatarUri = profile.avatar ? axiosClient.getFileUrl(profile.avatar) : undefined;
+
+  const avatarElement = avatarUri ? (
+    <Image source={{ uri: avatarUri }} style={styles.avatar} />
   ) : (
     <View
       style={[
@@ -71,6 +150,16 @@ export default function PublicProfileScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bcColor }}
       contentContainerStyle={styles.scrollContent}
+      onScroll={handleAuthorScroll}
+      scrollEventThrottle={16}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.linkColor}
+          colors={[colors.linkColor]}
+        />
+      }
     >
       <CustomLayout>
         <View style={styles.header}>
@@ -85,7 +174,7 @@ export default function PublicProfileScreen() {
         >
           <View style={styles.viewCardRow}>
             <TouchableOpacity
-              onPress={() => profile.avatar && setAvatarPreview(true)}
+              onPress={() => avatarUri && setAvatarPreview(true)}
             >
               {avatarElement}
             </TouchableOpacity>
@@ -113,28 +202,30 @@ export default function PublicProfileScreen() {
             {t("profile.articles")}
           </Text>
           {profile.role === "AUTHOR" || profile.role === "admin" ? (
-            (() => {
-              const userArticles = articles.filter(
-                (a) => a.authorId === userId,
-              );
-              return userArticles.length > 0 ? (
-                <View style={styles.articlesList}>
-                  {userArticles.map((article) => (
-                    <ArticleCard
-                      key={article.id}
-                      article={article}
-                      variant="horizontal"
-                    />
-                  ))}
-                </View>
-              ) : (
-                <Text
-                  style={[styles.emptyText, { color: colors.textColor }]}
-                >
-                  {t("profile.noArticles")}
-                </Text>
-              );
-            })()
+            userArticles.length > 0 ? (
+              <View style={styles.articlesList}>
+                {userArticles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    variant="horizontal"
+                  />
+                ))}
+                {isLoadingMoreArticles && (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.linkColor}
+                    style={{ paddingVertical: 16 }}
+                  />
+                )}
+              </View>
+            ) : (
+              <Text
+                style={[styles.emptyText, { color: colors.textColor }]}
+              >
+                {t("profile.noArticles")}
+              </Text>
+            )
           ) : (
             <Text
               style={[styles.emptyText, { color: colors.textColor }]}
@@ -145,7 +236,7 @@ export default function PublicProfileScreen() {
         </View>
       </CustomLayout>
 
-      {profile.avatar && (
+      {avatarUri && (
         <Modal
           visible={avatarPreview}
           transparent
@@ -157,9 +248,9 @@ export default function PublicProfileScreen() {
             onPress={() => setAvatarPreview(false)}
           >
             <Image
-              source={{ uri: profile.avatar }}
+              source={{ uri: avatarUri }}
               style={styles.previewImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </Pressable>
         </Modal>
@@ -170,8 +261,8 @@ export default function PublicProfileScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    flexGrow: 1,
-    padding: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
   },
   loadingContainer: {
     flex: 1,

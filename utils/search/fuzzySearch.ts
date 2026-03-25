@@ -84,7 +84,7 @@ export interface FuzzySearchOptions {
 export function fuzzySearchArticles(
   articles: Article[],
   query: string,
-  options: FuzzySearchOptions,
+  options: FuzzySearchOptions & { categories?: string[]; tags?: string[] },
 ): Article[] {
   let result: Article[];
 
@@ -100,6 +100,21 @@ export function fuzzySearchArticles(
       .sort((a, b) => b.score - a.score);
 
     result = scored.map((item) => item.article);
+  }
+
+  const hasCats = options.categories && options.categories.length > 0;
+  const hasTags = options.tags && options.tags.length > 0;
+
+  if (hasCats || hasTags) {
+    result = result.filter((a) => {
+      const matchCat = hasCats
+        ? options.categories!.some((c) => a.categories?.includes(c))
+        : false;
+      const matchTag = hasTags
+        ? options.tags!.some((t) => a.tags?.includes(t))
+        : false;
+      return matchCat || matchTag;
+    });
   }
 
   return sortArticles(result, options.sortBy);

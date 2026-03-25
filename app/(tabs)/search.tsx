@@ -28,7 +28,9 @@ export default function Search() {
 
   const hasActiveFilters =
     filters.searchField !== DEFAULT_FILTERS.searchField ||
-    filters.sortBy !== DEFAULT_FILTERS.sortBy;
+    filters.sortBy !== DEFAULT_FILTERS.sortBy ||
+    filters.categories.length > 0 ||
+    filters.tags.length > 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bcColor }]}>

@@ -79,7 +79,11 @@
     "sortNewest": "Newest",
     "sortOldest": "Oldest",
     "reset": "Reset",
-    "apply": "Apply"
+    "apply": "Apply",
+    "category": "Category",
+    "categoryAll": "All",
+    "tag": "Tag",
+    "tagAll": "All"
   },
   "thread": {
     "info": {
@@ -106,7 +110,13 @@
       "slugPlaceholder": "Short description of choosen theme",
       "image": "Add photo",
       "imageChange": "Change photo",
-      "error": "Create new article error"
+      "imageFromGallery": "Choose from gallery",
+      "imageFromCamera": "Take a photo",
+      "error": "Create new article error",
+      "tags": "Tags",
+      "categories": "Categories",
+      "tagsPlaceholder": "Select tags",
+      "categoriesPlaceholder": "Select categories"
     },
     "edit": {
       "title": "Edit article",
@@ -126,6 +136,22 @@
       "delete": "Delete",
       "cancel": "Cancel",
       "error": "Error delete article"
+    },
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments yet",
+      "placeholder": "Write a comment...",
+      "send": "Send",
+      "reply": "Reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editing": "Editing comment",
+      "replyingTo": "Replying to",
+      "cancel": "Cancel",
+      "deleteConfirm": "Delete this comment?",
+      "deleteConfirmMessage": "This action cannot be undone.",
+      "loadMore": "Load more comments",
+      "error": "Failed to load comments"
     }
   },
   "auth": {
