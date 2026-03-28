@@ -47,7 +47,8 @@
       "enabled": "Уведомления включены",
       "enabledBody": "Вы будете получать ежедневные напоминания",
       "disabled": "Уведомления отключены",
-      "disabledBody": "Ежедневные напоминания выключены"
+      "disabledBody": "Ежедневные напоминания выключены",
+      "email": "Email уведомления"
     },
     "footer": {
       "first": "Не коммерческий проект с открытым исходным кодом. Вы можете просмотреть ",
@@ -73,7 +74,7 @@
     "fieldSlug": "Описание",
     "fieldContent": "Контент",
     "sort": "Сортировка",
-    "sortDefault": "По умолч.",
+    "sortPopular": "Популярные",
     "sortTitleAsc": "А → Я",
     "sortTitleDesc": "Я → А",
     "sortNewest": "Новые",
@@ -83,7 +84,8 @@
     "category": "Категория",
     "categoryAll": "Все",
     "tag": "Тег",
-    "tagAll": "Все"
+    "tagAll": "Все",
+    "fromSubscriptions": "Из подписок"
   },
   "thread": {
     "info": {
@@ -203,7 +205,11 @@
     "notAuthor": "Этот пользователь не является автором",
     "saveSuccess": "Профиль обновлён",
     "saveError": "Ошибка обновления профиля",
-    "deleteError": "Ошибка удаления аккаунта"
+    "deleteError": "Ошибка удаления аккаунта",
+    "subscribe": "Подписаться",
+    "unsubscribe": "Отписаться",
+    "subscribers": "Подписчики",
+    "subscriptions": "Подписки"
   },
   "network": {
     "check": "Проверка соединения...",

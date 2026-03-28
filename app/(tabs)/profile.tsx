@@ -31,6 +31,10 @@ import { useTheme } from "@/utils/theme/useTheme";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import Toast from "react-native-toast-message";
 import axiosClient from "@/entities/api/api";
+import {
+  getSubscriptionCounts,
+  SubscriptionCounts,
+} from "@/entities/services/subscription";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -45,6 +49,7 @@ export default function Profile() {
   const { colors } = useTheme();
 
   const PAGE_SIZE = 10;
+  const [subCounts, setSubCounts] = useState<SubscriptionCounts>({ subscribers: 0, subscriptions: 0 });
   const [myArticles, setMyArticles] = useState<Article[]>([]);
   const [hasMoreArticles, setHasMoreArticles] = useState(true);
   const hasMoreRef = useRef(true);
@@ -86,6 +91,7 @@ export default function Profile() {
       myPageRef.current = 1;
       hasMoreRef.current = true;
       fetchMyArticlesPage(1, false);
+      getSubscriptionCounts(profile.id).then(setSubCounts).catch(() => {});
     }
   }, [profile, fetchMyArticlesPage]);
 
@@ -108,10 +114,13 @@ export default function Profile() {
     try {
       myPageRef.current = 1;
       await fetchMyArticlesPage(1, false);
+      if (profile) {
+        getSubscriptionCounts(profile.id).then(setSubCounts).catch(() => {});
+      }
     } finally {
       setRefreshing(false);
     }
-  }, [fetchMyArticlesPage]);
+  }, [fetchMyArticlesPage, profile]);
 
   const handleProfileScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -466,6 +475,34 @@ export default function Profile() {
             </View>
           </View>
 
+          {/* Subscription counts */}
+          <View style={styles.countsRow}>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {subCounts.subscribers}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.subscribers")}
+              </Text>
+            </View>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {subCounts.subscriptions}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.subscriptions")}
+              </Text>
+            </View>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {myArticles.length}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.articles")}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.actionRow}>
             <CustomButton
               onClick={signOut}
@@ -587,6 +624,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
     marginTop: 4,
+  },
+  countsRow: {
+      paddingHorizontal: 10,
+      paddingBottom: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  countItem: {
+    alignItems: "center",
+  },
+  countNumber: {
+    fontSize: 18,
+    fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
+  },
+  countLabel: {
+    fontSize: 12,
+    fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
   },
   actionRow: {
     flexDirection: "row",

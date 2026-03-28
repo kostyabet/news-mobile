@@ -48,8 +48,15 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
     return { items: result as Article[] };
   };
 
+  const filtersRef = useRef<SearchFilters>(DEFAULT_FILTERS);
+
   const fetchPage = useCallback(async (page: number, append: boolean) => {
-    const result = await getAllArticles(page, PAGE_SIZE);
+    const result = await getAllArticles(
+      page,
+      PAGE_SIZE,
+      "popular",
+      filtersRef.current.fromSubscriptions,
+    );
     const { items, total } = parseResponse(result);
 
     if (append) {
@@ -156,7 +163,19 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   };
 
   const [debounceSearch, setDebounceSearch] = useState<string>("");
-  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+  const [filters, setFiltersState] = useState<SearchFilters>(DEFAULT_FILTERS);
+
+  const setFilters = useCallback((newFilters: SearchFilters) => {
+    const subsChanged = newFilters.fromSubscriptions !== filtersRef.current.fromSubscriptions;
+    filtersRef.current = newFilters;
+    setFiltersState(newFilters);
+    if (subsChanged && isLoggedIn) {
+      pageRef.current = 1;
+      hasMoreRef.current = true;
+      setIsLoading(true);
+      fetchPage(1, false).finally(() => setIsLoading(false));
+    }
+  }, [isLoggedIn, fetchPage]);
 
   const handleSetSearch = (search?: string) => {
     setDebounceSearch(search || "");

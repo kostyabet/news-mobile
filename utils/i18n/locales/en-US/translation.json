@@ -47,7 +47,8 @@
       "enabled": "Notifications enabled",
       "enabledBody": "You will receive daily reminders",
       "disabled": "Notifications disabled",
-      "disabledBody": "Daily reminders are turned off"
+      "disabledBody": "Daily reminders are turned off",
+      "email": "Email notifications"
     },
     "footer": {
       "first": "Non commercial project open source project. You can see ",
@@ -73,7 +74,7 @@
     "fieldSlug": "Description",
     "fieldContent": "Content",
     "sort": "Sort by",
-    "sortDefault": "Default",
+    "sortPopular": "Popular",
     "sortTitleAsc": "A → Z",
     "sortTitleDesc": "Z → A",
     "sortNewest": "Newest",
@@ -83,7 +84,8 @@
     "category": "Category",
     "categoryAll": "All",
     "tag": "Tag",
-    "tagAll": "All"
+    "tagAll": "All",
+    "fromSubscriptions": "From subscriptions"
   },
   "thread": {
     "info": {
@@ -203,7 +205,11 @@
     "notAuthor": "This user is not an author",
     "saveSuccess": "Profile updated",
     "saveError": "Failed to update profile",
-    "deleteError": "Failed to delete account"
+    "deleteError": "Failed to delete account",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "subscribers": "Subscribers",
+    "subscriptions": "Subscriptions"
   },
   "network": {
     "check": "Checking connection...",

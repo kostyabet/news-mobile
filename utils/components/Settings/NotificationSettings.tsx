@@ -24,10 +24,12 @@ import {
   scheduleDaily,
   sendInstant,
 } from "@/entities/notifications/notificationService";
+import { useSettingsSync } from "@/entities/settings/useSettingsSync";
 
 export const NotificationSettings = () => {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
+  const { setPushNotifications } = useSettingsSync();
   const [settings, setSettings] = useState<NotificationSettingsType>(
     DEFAULT_NOTIFICATION_SETTINGS,
   );
@@ -62,6 +64,7 @@ export const NotificationSettings = () => {
     const updated = { ...settings, enabled: value };
     setSettings(updated);
     await applySchedule(updated);
+    await setPushNotifications(value);
 
     if (value) {
       await sendInstant(

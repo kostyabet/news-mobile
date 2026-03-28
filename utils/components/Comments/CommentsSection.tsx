@@ -19,8 +19,13 @@ import {
   addComment,
   editComment,
   deleteComment,
+  getCommentReactions,
+  setCommentReaction,
+  removeCommentReaction,
 } from "@/entities/services/comment";
+import { ReactionsCount } from "@/entities/article/model";
 import axiosClient from "@/entities/api/api";
+import { useRouter } from "expo-router";
 
 interface CommentsSectionProps {
   articleId: number;
@@ -33,7 +38,9 @@ export const CommentsSection = ({
 }: CommentsSectionProps) => {
   const { colors } = useTheme();
   const { t, i18n } = useTranslation();
+  const router = useRouter();
 
+  const LIKE_TYPE_ID = 1;
   const PAGE_SIZE = 10;
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +55,11 @@ export const CommentsSection = ({
   // Reply / edit state
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
+
+  // Comment reactions state
+  const [commentReactions, setCommentReactions] = useState<
+    Record<number, ReactionsCount>
+  >({});
 
   const parseResponse = (result: any): { items: Comment[]; total?: number } => {
     if (Array.isArray(result)) return { items: result };
@@ -160,6 +172,64 @@ export const CommentsSection = ({
     setText("");
   };
 
+  const collectCommentIds = (items: Comment[]): number[] => {
+    const ids: number[] = [];
+    const walk = (list: Comment[]) => {
+      for (const c of list) {
+        ids.push(c.id);
+        if (c.children?.length) walk(c.children);
+      }
+    };
+    walk(items);
+    return ids;
+  };
+
+  const fetchReactionsForComments = useCallback(async (items: Comment[]) => {
+    const ids = collectCommentIds(items);
+    const results: Record<number, ReactionsCount> = {};
+    await Promise.all(
+      ids.map(async (id) => {
+        try {
+          results[id] = await getCommentReactions(id);
+        } catch {
+          // ignore
+        }
+      }),
+    );
+    setCommentReactions((prev) => ({ ...prev, ...results }));
+  }, []);
+
+  useEffect(() => {
+    if (comments.length > 0) {
+      fetchReactionsForComments(comments);
+    }
+  }, [comments, fetchReactionsForComments]);
+
+  const handleCommentReaction = async (
+    commentId: number,
+    type: "like" | "dislike",
+  ) => {
+    const current = commentReactions[commentId];
+    try {
+      let result: ReactionsCount;
+      if (current?.userReaction === type) {
+        result = await removeCommentReaction(commentId);
+      } else {
+        result = await setCommentReaction(commentId, LIKE_TYPE_ID);
+      }
+      setCommentReactions((prev) => ({ ...prev, [commentId]: result }));
+    } catch {
+      // ignore
+    }
+  };
+
+  const navigateToProfile = (userId: number) => {
+    router.push({
+      pathname: "/profile/[id]",
+      params: { id: userId.toString() },
+    });
+  };
+
   const getAuthorName = (comment: Comment) => {
     if (!comment.author) return "?";
     const { firstName, lastName, login } = comment.author;
@@ -210,25 +280,31 @@ export const CommentsSection = ({
         ]}
       >
         <View style={styles.commentHeader}>
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
-          ) : (
-            <View
-              style={[
-                styles.avatarPlaceholder,
-                { backgroundColor: colors.bcSubBlockColor },
-              ]}
-            >
-              <Text
-                style={[styles.avatarInitial, { color: colors.textColor }]}
+          <TouchableOpacity
+            style={styles.authorTouchable}
+            onPress={() => comment.author && navigateToProfile(comment.author.id)}
+            activeOpacity={0.7}
+          >
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            ) : (
+              <View
+                style={[
+                  styles.avatarPlaceholder,
+                  { backgroundColor: colors.bcSubBlockColor },
+                ]}
               >
-                {getInitial(comment)}
-              </Text>
-            </View>
-          )}
-          <Text style={[styles.authorName, { color: colors.textColor }]}>
-            {getAuthorName(comment)}
-          </Text>
+                <Text
+                  style={[styles.avatarInitial, { color: colors.textColor }]}
+                >
+                  {getInitial(comment)}
+                </Text>
+              </View>
+            )}
+            <Text style={[styles.authorName, { color: colors.linkColor }]}>
+              {getAuthorName(comment)}
+            </Text>
+          </TouchableOpacity>
           {comment.createdAt && (
             <Text style={[styles.commentTime, { color: colors.activeTextColor }]}>
               {formatTime(comment.createdAt)}
@@ -241,6 +317,29 @@ export const CommentsSection = ({
         </Text>
 
         <View style={styles.commentActions}>
+          <TouchableOpacity
+            style={styles.heartButton}
+            onPress={() => handleCommentReaction(comment.id, "like")}
+          >
+            <Ionicons
+              name={
+                commentReactions[comment.id]?.userReaction === "like"
+                  ? "heart"
+                  : "heart-outline"
+              }
+              size={16}
+              color={
+                commentReactions[comment.id]?.userReaction === "like"
+                  ? "#e74c3c"
+                  : colors.activeTextColor
+              }
+            />
+            {(commentReactions[comment.id]?.likes ?? 0) > 0 && (
+              <Text style={[styles.heartCount, { color: colors.textColor }]}>
+                {commentReactions[comment.id]?.likes}
+              </Text>
+            )}
+          </TouchableOpacity>
           {depth < 3 && (
             <TouchableOpacity onPress={() => handleReply(comment)}>
               <Text style={[styles.actionText, { color: colors.linkColor }]}>
@@ -486,6 +585,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   actionText: {
+    fontSize: 12,
+    fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
+  },
+  authorTouchable: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  heartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  heartCount: {
     fontSize: 12,
     fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
   },

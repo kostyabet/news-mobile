@@ -18,11 +18,20 @@ import { useTheme } from "@/utils/theme/useTheme";
 import { CustomLayout, ReturnButton, ArticleCard } from "@/utils/components";
 import { FONT_WEIGHTS, getFontFamily } from "@/utils/fonts";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 import { useApi } from "@/entities/api/useApi";
 import { getProfile, UserProfile } from "@/entities/services/profile";
 import { getAuthorArticles } from "@/entities/services/article";
+import {
+  checkSubscription,
+  subscribe as apiSubscribe,
+  unsubscribe as apiUnsubscribe,
+  getSubscriptionCounts,
+  SubscriptionCounts,
+} from "@/entities/services/subscription";
 import { Article } from "@/entities/article/model";
 import axiosClient from "@/entities/api/api";
+import { useUser } from "@/entities/user/useUser";
 
 export default function PublicProfileScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -32,9 +41,14 @@ export default function PublicProfileScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
+  const { profile: currentUser } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subCounts, setSubCounts] = useState<SubscriptionCounts>({ subscribers: 0, subscriptions: 0 });
+  const [subLoading, setSubLoading] = useState(false);
+  const isOwnProfile = currentUser?.id === userId;
 
   // Author articles pagination
   const [userArticles, setUserArticles] = useState<Article[]>([]);
@@ -82,7 +96,28 @@ export default function PublicProfileScreen() {
     authorPageRef.current = 1;
     hasMoreRef.current = true;
     fetchAuthorPage(1, false);
+    checkSubscription(userId).then((r) => setIsSubscribed(r.subscribed)).catch(() => {});
+    getSubscriptionCounts(userId).then(setSubCounts).catch(() => {});
   }, [userId, fetchAuthorPage]);
+
+  const handleToggleSubscription = async () => {
+    setSubLoading(true);
+    try {
+      if (isSubscribed) {
+        await apiUnsubscribe(userId);
+        setIsSubscribed(false);
+        setSubCounts((prev) => ({ ...prev, subscribers: Math.max(0, prev.subscribers - 1) }));
+      } else {
+        await apiSubscribe(userId);
+        setIsSubscribed(true);
+        setSubCounts((prev) => ({ ...prev, subscribers: prev.subscribers + 1 }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSubLoading(false);
+    }
+  };
 
   const loadMoreAuthorArticles = useCallback(async () => {
     if (isLoadingMoreRef.current || !hasMoreRef.current) return;
@@ -102,6 +137,8 @@ export default function PublicProfileScreen() {
       await fetchProfile(userId);
       authorPageRef.current = 1;
       await fetchAuthorPage(1, false);
+      checkSubscription(userId).then((r) => setIsSubscribed(r.subscribed)).catch(() => {});
+      getSubscriptionCounts(userId).then(setSubCounts).catch(() => {});
     } finally {
       setRefreshing(false);
     }
@@ -194,6 +231,67 @@ export default function PublicProfileScreen() {
               </Text>
             </View>
           </View>
+
+          {/* Subscription counts */}
+          <View style={styles.countsRow}>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {subCounts.subscribers}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.subscribers")}
+              </Text>
+            </View>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {subCounts.subscriptions}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.subscriptions")}
+              </Text>
+            </View>
+            <View style={styles.countItem}>
+              <Text style={[styles.countNumber, { color: colors.textColor }]}>
+                {userArticles.length}
+              </Text>
+              <Text style={[styles.countLabel, { color: colors.activeTextColor }]}>
+                {t("profile.articles")}
+              </Text>
+            </View>
+          </View>
+
+          {/* Subscribe button */}
+          {!isOwnProfile && (
+            <TouchableOpacity
+              style={[
+                styles.subscribeButton,
+                {
+                  backgroundColor: isSubscribed
+                    ? colors.bcSubBlockColor
+                    : colors.linkColor,
+                },
+              ]}
+              onPress={handleToggleSubscription}
+              disabled={subLoading}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isSubscribed ? "checkmark" : "person-add-outline"}
+                size={16}
+                color={isSubscribed ? colors.textColor : "#fff"}
+              />
+              <Text
+                style={[
+                  styles.subscribeButtonText,
+                  { color: isSubscribed ? colors.textColor : "#fff" },
+                ]}
+              >
+                {isSubscribed
+                  ? t("profile.unsubscribe")
+                  : t("profile.subscribe")}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Articles section */}
@@ -299,6 +397,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
     marginTop: 4,
+  },
+  countsRow: {
+      paddingHorizontal: 10,
+      paddingBottom: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  countItem: {
+    alignItems: "center",
+  },
+  countNumber: {
+    fontSize: 18,
+    fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
+  },
+  countLabel: {
+    fontSize: 12,
+    fontFamily: getFontFamily(FONT_WEIGHTS.REGULAR),
+  },
+  subscribeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  subscribeButtonText: {
+    fontSize: 14,
+    fontFamily: getFontFamily(FONT_WEIGHTS.SEMI_BOLD),
   },
   articlesSection: {
     marginTop: 24,

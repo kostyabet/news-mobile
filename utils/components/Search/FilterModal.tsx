@@ -2,6 +2,7 @@ import {
   Modal,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -31,7 +32,7 @@ interface FilterModalProps {
 
 const SEARCH_FIELDS: SearchField[] = ["all", "title", "slug", "content"];
 const SORT_OPTIONS: SortOption[] = [
-  "default",
+  "popular",
   "title_asc",
   "title_desc",
   "newest",
@@ -71,7 +72,7 @@ export const FilterModal = ({
 
   const sortLabels = useMemo(
     () => [
-      t("search.sortDefault"),
+      t("search.sortPopular"),
       t("search.sortTitleAsc"),
       t("search.sortTitleDesc"),
       t("search.sortNewest"),
@@ -154,6 +155,22 @@ export const FilterModal = ({
                     sortBy: SORT_OPTIONS[index],
                   }))
                 }
+              />
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={[styles.sectionTitle, { color: colors.textColor }]}>
+                {t("search.fromSubscriptions")}
+              </Text>
+              <Switch
+                value={localFilters.fromSubscriptions}
+                onValueChange={(value) =>
+                  setLocalFilters((prev) => ({
+                    ...prev,
+                    fromSubscriptions: value,
+                  }))
+                }
+                trackColor={{ false: colors.bcSubBlockColor, true: colors.linkColor }}
               />
             </View>
 
@@ -394,6 +411,12 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontFamily: getFontFamily(FONT_WEIGHTS.MEDIUM),
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
   },
   modalFooter: {
     flexDirection: "row",

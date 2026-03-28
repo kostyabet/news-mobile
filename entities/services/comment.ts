@@ -1,4 +1,5 @@
 import axiosClient from "../api/api";
+import { ReactionsCount } from "@/entities/article/model";
 
 export interface CommentAuthor {
   id: number;
@@ -42,4 +43,25 @@ export const editComment = async (
 
 export const deleteComment = async (commentId: number): Promise<void> => {
   return axiosClient.delete(`/comments/${commentId}`);
+};
+
+// ---- Comment Reactions ----
+
+export const getCommentReactions = async (
+  commentId: number,
+): Promise<ReactionsCount> => {
+  return axiosClient.get(`/comments/${commentId}/reactions`);
+};
+
+export const setCommentReaction = async (
+  commentId: number,
+  typeId: number,
+): Promise<ReactionsCount> => {
+  return axiosClient.post(`/comments/${commentId}/reactions`, { typeId });
+};
+
+export const removeCommentReaction = async (
+  commentId: number,
+): Promise<ReactionsCount> => {
+  return axiosClient.delete(`/comments/${commentId}/reactions`);
 };

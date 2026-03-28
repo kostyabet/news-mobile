@@ -1,16 +1,23 @@
 import axiosClient from "./../api/api";
 import { CreateArticle, UpdateArticle } from "@/entities/article/model";
 
-export const getAllArticles = async (page = 1, limit = 10) => {
-  return axiosClient.get("/articles", { page, limit });
+export const getAllArticles = async (
+  page = 1,
+  limit = 10,
+  sort = "popular",
+  subscribed = false,
+) => {
+  const params: Record<string, any> = { page, limit, sort };
+  if (subscribed) params.subscribed = "true";
+  return axiosClient.get("/articles", params);
 };
 
-export const getMyArticles = async (page = 1, limit = 10) => {
-  return axiosClient.get("/articles/my", { page, limit });
+export const getMyArticles = async (page = 1, limit = 10, sort = "popular") => {
+  return axiosClient.get("/articles/my", { page, limit, sort });
 };
 
-export const getAuthorArticles = async (authorId: number, page = 1, limit = 10) => {
-  return axiosClient.get("/articles", { authorId, page, limit });
+export const getAuthorArticles = async (authorId: number, page = 1, limit = 10, sort = "popular") => {
+  return axiosClient.get("/articles", { authorId, page, limit, sort });
 };
 
 export const getArticle = async (id: number) => {

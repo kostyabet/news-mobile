@@ -71,8 +71,13 @@ function sortArticles(articles: Article[], sortBy: SortOption): Article[] {
       return [...articles].sort((a, b) => b.id - a.id);
     case "oldest":
       return [...articles].sort((a, b) => a.id - b.id);
+    case "popular":
     default:
-      return articles;
+      return [...articles].sort((a, b) => {
+        const aTotal = (a.reactions?.likes ?? 0) + (a.reactions?.dislikes ?? 0);
+        const bTotal = (b.reactions?.likes ?? 0) + (b.reactions?.dislikes ?? 0);
+        return bTotal - aTotal;
+      });
   }
 }
 

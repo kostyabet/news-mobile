@@ -23,13 +23,16 @@ import { LinkedIn } from "@/utils/icons/LinkedIn";
 import { Telegram } from "@/utils/icons/Telegram";
 import { AboutApp } from "@/utils/components/Settings/AboutApp";
 import { NotificationSettings } from "@/utils/components/Settings/NotificationSettings";
+import { EmailNotificationSettings } from "@/utils/components/Settings/EmailNotificationSettings";
 import LottieView from "lottie-react-native";
 import vazonJson from "@/assets/vazon.json";
 import { transparent } from "react-native-paper/src/styles/themes/v2/colors";
+import { useSettingsSync } from "@/entities/settings/useSettingsSync";
 
 export default function SettingsPage() {
   const { colors, themeId, setTheme } = useTheme();
   const { t } = useTranslation();
+  const { syncThemeToServer, syncLanguageToServer } = useSettingsSync();
   const animation = useRef<LottieView>(null);
 
   const THEME = useMemo(
@@ -56,7 +59,9 @@ export default function SettingsPage() {
   const currentLanguage = getCurrentLanguage(LANGUAGE);
   const handleLanguageChange = (id: number) => {
     const newLanguage = LANGUAGE.find((lang) => lang.id === id);
-    changeLanguage(newLanguage?.key || defaultLanguage);
+    const langKey = newLanguage?.key || defaultLanguage;
+    changeLanguage(langKey);
+    syncLanguageToServer(langKey);
   };
 
   const SOCIAL_ITEMS = useMemo(() => {
@@ -101,7 +106,11 @@ export default function SettingsPage() {
             <CustomSegmentControl
               items={THEME.map((item) => item.value)}
               activeIndex={themeId}
-              setActiveIndex={(id) => setTheme(id)}
+              setActiveIndex={(id) => {
+                setTheme(id);
+                const themeNames = ["system", "light", "dark"] as const;
+                syncThemeToServer(themeNames[id]);
+              }}
             />
           </SettingsBlock>
           <SettingsBlock
@@ -119,6 +128,7 @@ export default function SettingsPage() {
             icon={<Bell width={20} height={20} />}
           >
             <NotificationSettings />
+            <EmailNotificationSettings />
           </SettingsBlock>
           <SettingsBlock
             name={t("settings.contacts.title")}
