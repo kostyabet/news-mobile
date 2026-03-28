@@ -2,9 +2,7 @@ import { createContext } from "react";
 
 export interface SettingsSyncContextData {
   pushNotifications: boolean;
-  emailNotifications: boolean;
   setPushNotifications: (value: boolean) => Promise<void>;
-  setEmailNotifications: (value: boolean) => Promise<void>;
   syncThemeToServer: (theme: "system" | "light" | "dark") => Promise<void>;
   syncLanguageToServer: (language: string) => Promise<void>;
   isSyncing: boolean;

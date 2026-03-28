@@ -5,7 +5,6 @@ export interface ServerSettings {
   theme_id: number;
   language_id: number;
   push_notifications: boolean;
-  email_notifications: boolean;
 }
 
 // Backend seed mapping:

@@ -12,6 +12,7 @@ import { AuthProvider } from "@/entities/auth/AuthProvider";
 import { useAuth } from "@/entities/auth/useAuth";
 import { UserProvider } from "@/entities/user/UserProvider";
 import { SettingsSyncProvider } from "@/entities/settings/SettingsSyncProvider";
+import { NotificationProvider } from "@/entities/notification/NotificationProvider";
 import Toast from "react-native-toast-message";
 
 const InitLayout = () => {
@@ -68,15 +69,17 @@ export default function RootLayout() {
       <NetworkProvider checkInterval={30000}>
         <AuthProvider>
           <SettingsSyncProvider>
-            <UserProvider>
-              <ArticleProvider>
-                <NetworkStatusBanner />
-                <ThemedStatusBar />
-                <Toast />
+            <NotificationProvider>
+              <UserProvider>
+                <ArticleProvider>
+                  <NetworkStatusBanner />
+                  <ThemedStatusBar />
+                  <Toast />
 
-                <InitLayout />
-              </ArticleProvider>
-            </UserProvider>
+                  <InitLayout />
+                </ArticleProvider>
+              </UserProvider>
+            </NotificationProvider>
           </SettingsSyncProvider>
         </AuthProvider>
       </NetworkProvider>

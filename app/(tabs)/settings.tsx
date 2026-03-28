@@ -23,7 +23,6 @@ import { LinkedIn } from "@/utils/icons/LinkedIn";
 import { Telegram } from "@/utils/icons/Telegram";
 import { AboutApp } from "@/utils/components/Settings/AboutApp";
 import { NotificationSettings } from "@/utils/components/Settings/NotificationSettings";
-import { EmailNotificationSettings } from "@/utils/components/Settings/EmailNotificationSettings";
 import LottieView from "lottie-react-native";
 import vazonJson from "@/assets/vazon.json";
 import { transparent } from "react-native-paper/src/styles/themes/v2/colors";
@@ -128,7 +127,6 @@ export default function SettingsPage() {
             icon={<Bell width={20} height={20} />}
           >
             <NotificationSettings />
-            <EmailNotificationSettings />
           </SettingsBlock>
           <SettingsBlock
             name={t("settings.contacts.title")}

@@ -25,7 +25,6 @@ export const SettingsSyncProvider: React.FC<{ children: React.ReactNode }> = ({
   const { isLoggedIn } = useAuth();
   const { setTheme } = useTheme();
   const [pushNotifications, setPushNotificationsState] = useState(false);
-  const [emailNotifications, setEmailNotificationsState] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Load settings from server on login
@@ -51,7 +50,6 @@ export const SettingsSyncProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Apply notification settings
         setPushNotificationsState(settings.push_notifications);
-        setEmailNotificationsState(settings.email_notifications);
       } catch (e) {
         // Server settings not available — keep local settings
         if (__DEV__) console.log("[SETTINGS] Failed to load server settings, using local");
@@ -92,22 +90,11 @@ export const SettingsSyncProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const setEmailNotifications = useCallback(async (value: boolean) => {
-    setEmailNotificationsState(value);
-    try {
-      await updateSettings({ email_notifications: value });
-    } catch (e) {
-      if (__DEV__) console.log("[SETTINGS] Failed to sync email notifications to server");
-    }
-  }, []);
-
   return (
     <SettingsSyncContext.Provider
       value={{
         pushNotifications,
-        emailNotifications,
         setPushNotifications,
-        setEmailNotifications,
         syncThemeToServer,
         syncLanguageToServer,
         isSyncing,

@@ -39,16 +39,20 @@
     },
     "notifications": {
       "title": "Notifications",
-      "enable": "Daily reminder",
-      "time": "Reminder time",
-      "notificationTitle": "Vazon News",
-      "notificationBody": "Check out new articles!",
+      "enable": "Push notifications",
       "permissionDenied": "Notifications are disabled in system settings",
       "enabled": "Notifications enabled",
-      "enabledBody": "You will receive daily reminders",
+      "enabledBody": "You will receive push notifications",
       "disabled": "Notifications disabled",
-      "disabledBody": "Daily reminders are turned off",
-      "email": "Email notifications"
+      "disabledBody": "Push notifications are turned off",
+      "pageTitle": "Notifications",
+      "empty": "No notifications yet",
+      "markAllRead": "Mark all as read",
+      "newArticle": "published a new article",
+      "newComment": "commented on your article",
+      "newReaction": "reacted to your article",
+      "newSubscriber": "subscribed to you",
+      "loadMore": "Load more"
     },
     "footer": {
       "first": "Non commercial project open source project. You can see ",

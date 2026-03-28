@@ -35,6 +35,8 @@ import {
   getSubscriptionCounts,
   SubscriptionCounts,
 } from "@/entities/services/subscription";
+import { NotificationsModal } from "@/utils/components/Notifications/NotificationsModal";
+import { useNotifications } from "@/entities/notification/useNotifications";
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -47,6 +49,9 @@ export default function Profile() {
     deleteAccount,
   } = useUser();
   const { colors } = useTheme();
+
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const { unreadCount: unreadNotifications } = useNotifications();
 
   const PAGE_SIZE = 10;
   const [subCounts, setSubCounts] = useState<SubscriptionCounts>({ subscribers: 0, subscriptions: 0 });
@@ -434,7 +439,22 @@ export default function Profile() {
       }
     >
       <CustomLayout>
-        <PageHeader title={t("profile.title")} />
+        <View style={styles.profileHeader}>
+          <PageHeader title={t("profile.title")} />
+          <TouchableOpacity
+            style={[styles.bellButton, { backgroundColor: colors.bcBlockColor }]}
+            onPress={() => setNotificationsVisible(true)}
+          >
+            <Ionicons name="notifications-outline" size={22} color={colors.textColor} />
+            {unreadNotifications > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.deleteColor }]}>
+                <Text style={styles.badgeText}>
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View
           style={[
@@ -576,6 +596,11 @@ export default function Profile() {
           </Pressable>
         </Modal>
       )}
+
+      <NotificationsModal
+        visible={notificationsVisible}
+        onClose={() => setNotificationsVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -589,6 +614,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  profileHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  bellButton: {
+    padding: 8,
+    borderRadius: 12,
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 9,
+    fontFamily: getFontFamily(FONT_WEIGHTS.BOLD),
   },
   viewCard: {
     flex: 1,
@@ -632,6 +683,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   countItem: {
+    flex: 1,
     alignItems: "center",
   },
   countNumber: {
